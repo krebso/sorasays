@@ -45,71 +45,15 @@ export const GifGenerator = ({ gifUrl, videoUrl, isConverting, onGenerateNew }: 
       const response = await fetch(displayUrl);
       const blob = await response.blob();
       
-      // Try GIF first, then PNG, then URL as fallbacks
-      try {
-        // Attempt 1: Copy as actual GIF (animated)
-        await navigator.clipboard.write([
-          new ClipboardItem({ 'image/gif': blob })
-        ]);
-        toast.success("Animated GIF copied! Paste with Ctrl+V");
-      } catch (gifError) {
-        console.log('GIF clipboard failed, trying PNG:', gifError);
-        try {
-          // Attempt 2: Convert to PNG (static image)
-          const pngBlob = await convertGifToPng(blob);
-          await navigator.clipboard.write([
-            new ClipboardItem({ 'image/png': pngBlob })
-          ]);
-          toast.success("GIF copied as image! Paste with Ctrl+V");
-        } catch (pngError) {
-          console.log('PNG clipboard failed, copying URL:', pngError);
-          // Attempt 3: Copy URL as text
-          await navigator.clipboard.writeText(displayUrl);
-          toast.success("GIF link copied to clipboard!");
-        }
-      }
+      // Copy as actual GIF (animated) - no fallbacks
+      await navigator.clipboard.write([
+        new ClipboardItem({ 'image/gif': blob })
+      ]);
+      toast.success("Animated GIF copied! Paste with Ctrl+V");
     } catch (error) {
-      toast.error("Failed to copy. Try downloading instead.");
+      toast.error("Your browser doesn't support copying GIFs. Try downloading instead.");
       console.error(error);
     }
-  };
-
-  // Convert GIF to PNG for better clipboard compatibility
-  const convertGifToPng = async (gifBlob: Blob): Promise<Blob> => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      const url = URL.createObjectURL(gifBlob);
-      
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext('2d');
-        
-        if (!ctx) {
-          reject(new Error('Could not get canvas context'));
-          return;
-        }
-        
-        ctx.drawImage(img, 0, 0);
-        URL.revokeObjectURL(url);
-        
-        canvas.toBlob((blob) => {
-          if (blob) {
-            resolve(blob);
-          } else {
-            reject(new Error('Could not convert to PNG'));
-          }
-        }, 'image/png');
-      };
-      
-      img.onerror = () => {
-        URL.revokeObjectURL(url);
-        reject(new Error('Could not load image'));
-      };
-      
-      img.src = url;
-    });
   };
 
   return (
