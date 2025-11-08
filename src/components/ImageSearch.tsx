@@ -86,7 +86,7 @@ export const ImageSearch = ({ onImageSelect, selectedImageUrl }: ImageSearchProp
       </div>
 
       {searchResults.length > 0 && (
-        <div className="grid grid-cols-5 gap-2 max-h-[200px] overflow-y-auto p-1">
+        <div className="grid grid-cols-3 gap-3 max-h-[300px] overflow-y-auto p-1">
           {searchResults.map((result) => (
             <button
               key={result.filepath}
