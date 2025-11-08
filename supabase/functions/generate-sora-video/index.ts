@@ -68,13 +68,15 @@ serve(async (req) => {
       }
 
       const statusData = await statusResponse.json();
-      console.log(`Status check ${attempts}:`, statusData.status, `Progress: ${statusData.progress || 0}%`);
+      console.log(`Status check ${attempts}:`, JSON.stringify(statusData, null, 2));
 
       if (statusData.status === 'completed') {
         videoData = statusData;
         break;
       } else if (statusData.status === 'failed') {
-        throw new Error('Video generation failed');
+        const errorMsg = statusData.error?.message || statusData.failure_reason || 'Unknown failure';
+        console.error('Video generation failed:', errorMsg);
+        throw new Error(`Video generation failed: ${errorMsg}`);
       }
     }
 
