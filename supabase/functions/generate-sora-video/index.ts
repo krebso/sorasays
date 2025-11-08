@@ -22,7 +22,7 @@ serve(async (req) => {
     const formData = new FormData();
     formData.append('model', 'sora-2');
     formData.append('prompt', prompt);
-    formData.append('size', '480x640');
+    formData.append('size', '720x1280');  // Smallest vertical format (portrait)
     formData.append('seconds', '4');
 
     const createResponse = await fetch('https://api.openai.com/v1/videos', {
