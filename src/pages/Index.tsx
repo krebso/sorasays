@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { GifGenerator } from "@/components/GifGenerator";
-import { convertVideoToGif } from "@/lib/videoToGif";
+
 import { ToneSelector } from "@/components/ToneSelector";
 
 export type Tone = "sarcastic" | "wholesome" | "savage" | "helpful" | "chaotic";
@@ -116,13 +116,24 @@ const Index = () => {
       setIsConverting(true);
       toast.info("Loading converter (first time may take 30s)...");
       
-      const gifBlob = await convertVideoToGif(videoBlob, (progress) => {
-        console.log(`Conversion progress: ${progress}%`);
-        if (progress > 0) {
-          toast.info(`Converting to GIF: ${progress}%`);
-        }
+      // Convert on backend to avoid browser worker/MIME issues
+      const videoBase64 = await new Promise<string>((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve((r.result as string).split(',')[1]);
+        r.onerror = reject;
+        r.readAsDataURL(videoBlob);
       });
-      
+
+      const { data: convData, error: convError } = await supabase.functions.invoke(
+        'convert-to-gif',
+        { body: { videoBase64 } }
+      );
+      if (convError || !convData?.gifBase64) {
+        throw new Error(convError?.message || 'GIF conversion failed');
+      }
+
+      const gifBytes = Uint8Array.from(atob(convData.gifBase64), c => c.charCodeAt(0));
+      const gifBlob = new Blob([gifBytes], { type: 'image/gif' });
       const gifUrl = URL.createObjectURL(gifBlob);
       setGeneratedGif(gifUrl);
       setIsConverting(false);
