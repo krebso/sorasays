@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { GifGenerator } from "@/components/GifGenerator";
+import { convertVideoToGif } from "@/lib/videoToGif";
 import { ToneSelector } from "@/components/ToneSelector";
 
 export type Tone = "sarcastic" | "wholesome" | "savage" | "helpful" | "chaotic";
@@ -102,12 +103,17 @@ const Index = () => {
       }
 
       const videoBlob = await downloadResp.blob();
-      const videoUrl = URL.createObjectURL(videoBlob);
       
-      setGeneratedGif(videoUrl);
+      // Step 4: Convert to GIF
+      toast.info("Converting to GIF (this may take a moment)...");
+      const gifBlob = await convertVideoToGif(videoBlob, (progress) => {
+        console.log(`Conversion progress: ${progress}%`);
+      });
+      
+      const gifUrl = URL.createObjectURL(gifBlob);
+      setGeneratedGif(gifUrl);
 
-      // Skip GIF conversion and just use the video
-      toast.success("Your response video is ready!");
+      toast.success("Your response GIF is ready!");
       setIsGenerating(false);
     } catch (error) {
       console.error('Generation error:', error);

@@ -1,6 +1,7 @@
 import { Download, Copy, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useState, useEffect } from "react";
 
 interface GifGeneratorProps {
   gifUrl: string;
@@ -10,7 +11,19 @@ interface GifGeneratorProps {
 export const GifGenerator = ({ gifUrl, onGenerateNew }: GifGeneratorProps) => {
   const isBlob = gifUrl.startsWith('blob:');
   const isBase64 = gifUrl.startsWith('data:');
-  const isVideo = isBlob || gifUrl.includes('.mp4') || (gifUrl.startsWith('http') && !gifUrl.endsWith('.gif'));
+  
+  // Check if it's actually a video by examining the blob type
+  const [isVideo, setIsVideo] = useState(false);
+  
+  useEffect(() => {
+    if (isBlob) {
+      fetch(gifUrl).then(r => r.blob()).then(blob => {
+        setIsVideo(blob.type.startsWith('video/'));
+      });
+    } else {
+      setIsVideo(gifUrl.includes('.mp4') || (gifUrl.startsWith('http') && !gifUrl.endsWith('.gif')));
+    }
+  }, [gifUrl, isBlob]);
 
   const handleDownload = async () => {
     try {
@@ -78,7 +91,7 @@ export const GifGenerator = ({ gifUrl, onGenerateNew }: GifGeneratorProps) => {
                preload="metadata"
                className="w-full h-full object-contain"
              />
-          ) : isBase64 ? (
+          ) : isBase64 || isBlob ? (
             <img
               src={gifUrl}
               alt="Generated GIF"
