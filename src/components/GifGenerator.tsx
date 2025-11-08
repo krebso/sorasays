@@ -41,17 +41,10 @@ export const GifGenerator = ({ gifUrl, videoUrl, isConverting, onGenerateNew }: 
     }
 
     try {
-      // Fetch the GIF and convert to blob
-      const response = await fetch(displayUrl);
-      const blob = await response.blob();
-      
-      // Copy as actual GIF (animated) - no fallbacks
-      await navigator.clipboard.write([
-        new ClipboardItem({ 'image/gif': blob })
-      ]);
-      toast.success("Animated GIF copied! Paste with Ctrl+V");
+      await navigator.clipboard.writeText(displayUrl);
+      toast.success("GIF link copied! Paste anywhere to share it.");
     } catch (error) {
-      toast.error("Your browser doesn't support copying GIFs. Try downloading instead.");
+      toast.error("Failed to copy link.");
       console.error(error);
     }
   };
@@ -111,7 +104,7 @@ export const GifGenerator = ({ gifUrl, videoUrl, isConverting, onGenerateNew }: 
               disabled={isConverting}
             >
               <Copy className="w-5 h-5 mr-2" />
-              Copy GIF
+              Copy GIF Link
             </Button>
           )}
           
