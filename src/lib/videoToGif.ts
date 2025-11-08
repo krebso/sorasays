@@ -10,42 +10,50 @@ export async function loadFFmpeg(onProgress?: (progress: number) => void): Promi
   }
 
   console.log('Starting FFmpeg initialization...');
-  ffmpeg = new FFmpeg();
+  const instance = new FFmpeg();
   
-  ffmpeg.on('log', ({ message }) => {
+  instance.on('log', ({ message }) => {
     console.log('[FFmpeg]', message);
   });
 
   if (onProgress) {
-    ffmpeg.on('progress', ({ progress }) => {
+    instance.on('progress', ({ progress }) => {
       const progressPercent = Math.round(progress * 100);
       console.log(`FFmpeg progress: ${progressPercent}%`);
       onProgress(progressPercent);
     });
   }
 
-  // Load FFmpeg from CDN
-  console.log('Downloading FFmpeg core files from CDN...');
-  const baseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/esm';
-  
-  const coreURL = await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript');
-  console.log('Core JS downloaded');
-  
-  const wasmURL = await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm');
-  console.log('WASM downloaded');
-  
-  const workerURL = await toBlobURL(`${baseURL}/ffmpeg-core.worker.js`, 'text/javascript');
-  console.log('Worker JS downloaded');
-  
-  console.log('Loading FFmpeg...');
-  await ffmpeg.load({
-    coreURL,
-    wasmURL,
-    workerURL,
-  });
-  console.log('FFmpeg loaded successfully!');
+  try {
+    // Load FFmpeg from CDN
+    console.log('Downloading FFmpeg core files from CDN...');
+    const baseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/esm';
+    
+    const coreURL = await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript');
+    console.log('Core JS downloaded');
+    
+    const wasmURL = await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm');
+    console.log('WASM downloaded');
+    
+    const workerURL = await toBlobURL(`${baseURL}/ffmpeg-core.worker.js`, 'text/javascript');
+    console.log('Worker JS downloaded');
+    console.log('Using workerURL:', workerURL);
+    
+    console.log('Loading FFmpeg...');
+    await instance.load({
+      coreURL,
+      wasmURL,
+      workerURL,
+    });
+    console.log('FFmpeg loaded successfully!');
 
-  return ffmpeg;
+    ffmpeg = instance;
+    return instance;
+  } catch (e) {
+    console.error('FFmpeg load failed, resetting instance', e);
+    ffmpeg = null;
+    throw e;
+  }
 }
 
 export async function convertVideoToGif(
