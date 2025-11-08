@@ -28,10 +28,7 @@ serve(async (req) => {
     }
 
     console.log('Generating video with Sora API for prompt:', sanitizedPrompt);
-    if (referenceImageUrl) {
-      console.log('Using reference image URL:', referenceImageUrl);
-    }
-
+    
     // Step 1: Create the video generation request
     const formData = new FormData();
     formData.append('model', 'sora-2');
@@ -39,9 +36,27 @@ serve(async (req) => {
     formData.append('size', '720x1280');  // Smallest vertical format (portrait)
     formData.append('seconds', '4');
     
-    // Add reference image URL if provided
+    // Fetch and add reference image if URL provided
     if (referenceImageUrl) {
-      formData.append('input_reference', referenceImageUrl);
+      console.log('Fetching reference image from URL:', referenceImageUrl);
+      try {
+        const imageResponse = await fetch(referenceImageUrl);
+        if (!imageResponse.ok) {
+          throw new Error(`Failed to fetch image: ${imageResponse.status}`);
+        }
+        
+        const imageBlob = await imageResponse.blob();
+        
+        // Determine MIME type from blob or default to jpeg
+        const mimeType = imageBlob.type || 'image/jpeg';
+        const fileExtension = mimeType.split('/')[1] || 'jpg';
+        
+        console.log('Image fetched, type:', mimeType);
+        formData.append('input_reference', imageBlob, `reference.${fileExtension}`);
+      } catch (error) {
+        console.error('Failed to fetch reference image:', error);
+        throw new Error('Failed to fetch reference image from URL');
+      }
     }
 
     const createResponse = await fetch('https://api.openai.com/v1/videos', {
