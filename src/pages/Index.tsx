@@ -147,7 +147,7 @@ const Index = () => {
           </p>
         </div>
 
-        {!generatedGif ? (
+        {!generatedGif && !videoUrl ? (
           <div className="max-w-3xl mx-auto animate-in slide-in-from-bottom duration-500">
             {/* Upload Section */}
             <div className="bg-card rounded-3xl p-8 shadow-card mb-6">
