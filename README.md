@@ -2,7 +2,7 @@
 
 A modern web application that generates custom GIFs using Sora AI video generation technology. Users can describe what they want, select a tone, and receive a unique GIF created from AI-generated video content.
 
-Available at: [https://vibe-gif-generator.lovable.app](https://vibe-gif-generator.lovable.app)
+Available at: [https://sorasays.lovable.app](https://sorasays.lovable.app)
 
 ## 🚀 How to Use
 
