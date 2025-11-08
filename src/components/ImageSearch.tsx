@@ -3,7 +3,6 @@ import { Search, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 
 interface ImageSearchProps {
   onImageSelect: (imageUrl: string) => void;
@@ -31,14 +30,15 @@ export const ImageSearch = ({ onImageSelect, selectedImageUrl }: ImageSearchProp
 
     setIsSearching(true);
     try {
-      const { data, error } = await supabase.functions.invoke('proxy-image-search', {
-        body: { prompt: searchQuery }
-      });
+      const response = await fetch(
+        `https://agent-middle-primary-washing.trycloudflare.com/search?prompt=${encodeURIComponent(searchQuery)}`
+      );
 
-      if (error) {
-        throw new Error(error.message || "Search failed");
+      if (!response.ok) {
+        throw new Error("Search failed");
       }
 
+      const data = await response.json();
       setSearchResults(data.results || []);
       
       if (data.results?.length === 0) {
