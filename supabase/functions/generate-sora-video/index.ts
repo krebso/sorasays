@@ -23,7 +23,7 @@ serve(async (req) => {
     formData.append('model', 'sora-2');
     formData.append('prompt', prompt);
     formData.append('size', '480x640');
-    formData.append('seconds', '5');
+    formData.append('seconds', '4');
 
     const createResponse = await fetch('https://api.openai.com/v1/videos', {
       method: 'POST',
