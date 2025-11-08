@@ -239,7 +239,10 @@ const Index = () => {
 
             {/* Reference Image */}
             <div className="bg-card rounded-2xl p-4 shadow-card mb-4">
-              <h2 className="text-lg font-bold mb-2">Reference Image (Optional)</h2>
+              <h2 className="text-lg font-bold mb-2 flex items-center gap-2">
+                <Upload className="w-5 h-5 text-primary" />
+                Reference Image (Optional)
+              </h2>
               <p className="text-xs text-muted-foreground mb-3">
                 Upload an image to inspire the visual style of your GIF
               </p>
