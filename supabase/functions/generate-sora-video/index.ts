@@ -27,7 +27,14 @@ serve(async (req) => {
       throw new Error('Prompt cannot be empty');
     }
 
-    console.log('Generating video with Sora API for prompt:', sanitizedPrompt);
+    console.log('=================================');
+    console.log('SORA VIDEO GENERATION REQUEST');
+    console.log('=================================');
+    console.log('Prompt:', sanitizedPrompt);
+    console.log('Has reference image:', !!referenceImageBase64);
+    console.log('Size: 720x1280 (portrait)');
+    console.log('Duration: 4 seconds');
+    console.log('=================================');
     
     // Step 1: Create the video generation request
     const formData = new FormData();
