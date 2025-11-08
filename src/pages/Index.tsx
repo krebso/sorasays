@@ -219,34 +219,16 @@ const Index = () => {
             </div>
 
             {/* Reference Image */}
-            <div className="bg-card rounded-3xl p-8 shadow-card mb-6">
-              <h2 className="text-2xl font-bold mb-6">Reference Image (Optional)</h2>
+            <div className="bg-card rounded-3xl p-8 shadow-card mb-6 opacity-50 cursor-not-allowed">
+              <h2 className="text-2xl font-bold mb-6">Reference Image (Coming Soon)</h2>
               <p className="text-sm text-muted-foreground mb-4">
-                Upload an image to inspire the visual style of your GIF
+                Reference image support is not yet available in the Sora API
               </p>
-              <div className="border-2 border-dashed border-border rounded-2xl p-6 text-center hover:border-primary transition-colors cursor-pointer">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleReferenceImageChange}
-                  className="hidden"
-                  id="reference-upload"
-                />
-                <label htmlFor="reference-upload" className="cursor-pointer">
-                  {referenceImage ? (
-                    <div className="space-y-2">
-                      <div className="text-primary font-semibold">{referenceImage.name}</div>
-                      <div className="text-sm text-muted-foreground">Click to change</div>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <Upload className="w-8 h-8 mx-auto text-muted-foreground" />
-                      <div className="text-sm text-muted-foreground">
-                        Click to upload reference image
-                      </div>
-                    </div>
-                  )}
-                </label>
+              <div className="border-2 border-dashed border-border rounded-2xl p-6 text-center">
+                <Upload className="w-8 h-8 mx-auto text-muted-foreground" />
+                <div className="text-sm text-muted-foreground mt-2">
+                  Feature coming soon
+                </div>
               </div>
             </div>
 
