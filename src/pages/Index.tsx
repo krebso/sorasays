@@ -12,13 +12,25 @@ export type Tone = "sarcastic" | "wholesome" | "savage" | "helpful" | "chaotic";
 
 const Index = () => {
   const [screenshot, setScreenshot] = useState<File | null>(null);
-  const [referenceImageUrl, setReferenceImageUrl] = useState<string>("");
+  const [referenceImage, setReferenceImage] = useState<File | null>(null);
   const [selectedTone, setSelectedTone] = useState<Tone>("sarcastic");
   const [customInstruction, setCustomInstruction] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedGif, setGeneratedGif] = useState<string | null>(null);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [isConverting, setIsConverting] = useState(false);
+
+  const handleReferenceImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith("image/")) {
+        toast.error("Please upload an image file");
+        return;
+      }
+      setReferenceImage(file);
+      toast.success("Reference image uploaded!");
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -74,12 +86,27 @@ const Index = () => {
       // Step 2: Generate video with Sora
       toast.info("Generating video with AI...");
       
+      // Convert reference image to base64 if provided
+      let referenceImageBase64 = null;
+      if (referenceImage) {
+        const refReader = new FileReader();
+        referenceImageBase64 = await new Promise<string>((resolve, reject) => {
+          refReader.onload = () => {
+            const base64 = refReader.result as string;
+            resolve(base64.split(',')[1]);
+          };
+          refReader.onerror = reject;
+          refReader.readAsDataURL(referenceImage);
+        });
+      }
+      
       const { data: videoData, error: videoError } = await supabase.functions.invoke(
         'generate-sora-video',
         {
           body: {
             prompt: promptData.gifPrompt,
-            referenceImageUrl: referenceImageUrl || null,
+            referenceImageBase64: referenceImageBase64,
+            referenceImageType: referenceImage?.type || null,
           },
         }
       );
@@ -197,15 +224,32 @@ const Index = () => {
             <div className="bg-card rounded-3xl p-8 shadow-card mb-6">
               <h2 className="text-2xl font-bold mb-6">Reference Image (Optional)</h2>
               <p className="text-sm text-muted-foreground mb-4">
-                Paste a URL of an image to inspire the visual style of your GIF
+                Upload an image to inspire the visual style of your GIF
               </p>
-              <input
-                type="url"
-                placeholder="https://example.com/image.jpg"
-                value={referenceImageUrl}
-                onChange={(e) => setReferenceImageUrl(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border-2 border-border bg-background focus:border-primary focus:outline-none transition-colors"
-              />
+              <div className="border-2 border-dashed border-border rounded-2xl p-6 text-center hover:border-primary transition-colors cursor-pointer">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleReferenceImageChange}
+                  className="hidden"
+                  id="reference-upload"
+                />
+                <label htmlFor="reference-upload" className="cursor-pointer">
+                  {referenceImage ? (
+                    <div className="space-y-2">
+                      <div className="text-primary font-semibold">{referenceImage.name}</div>
+                      <div className="text-sm text-muted-foreground">Click to change</div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <Upload className="w-8 h-8 mx-auto text-muted-foreground" />
+                      <div className="text-sm text-muted-foreground">
+                        Click to upload reference image
+                      </div>
+                    </div>
+                  )}
+                </label>
+              </div>
             </div>
 
             {/* Custom Instructions */}
@@ -251,7 +295,7 @@ const Index = () => {
               setGeneratedGif(null);
               setVideoUrl(null);
               setScreenshot(null);
-              setReferenceImageUrl("");
+              setReferenceImage(null);
               setCustomInstruction("");
             }}
           />

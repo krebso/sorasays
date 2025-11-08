@@ -14,7 +14,7 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, referenceImageUrl } = await req.json();
+    const { prompt, referenceImageBase64, referenceImageType } = await req.json();
 
     // Validate and sanitize prompt
     if (!prompt || typeof prompt !== 'string') {
@@ -36,27 +36,19 @@ serve(async (req) => {
     formData.append('size', '720x1280');  // Smallest vertical format (portrait)
     formData.append('seconds', '4');
     
-    // Fetch and add reference image if URL provided
-    if (referenceImageUrl) {
-      console.log('Fetching reference image from URL:', referenceImageUrl);
-      try {
-        const imageResponse = await fetch(referenceImageUrl);
-        if (!imageResponse.ok) {
-          throw new Error(`Failed to fetch image: ${imageResponse.status}`);
-        }
-        
-        const imageBlob = await imageResponse.blob();
-        
-        // Determine MIME type from blob or default to jpeg
-        const mimeType = imageBlob.type || 'image/jpeg';
-        const fileExtension = mimeType.split('/')[1] || 'jpg';
-        
-        console.log('Image fetched, type:', mimeType);
-        formData.append('input_reference', imageBlob, `reference.${fileExtension}`);
-      } catch (error) {
-        console.error('Failed to fetch reference image:', error);
-        throw new Error('Failed to fetch reference image from URL');
-      }
+    // Convert and add reference image if provided
+    if (referenceImageBase64 && referenceImageType) {
+      console.log('Converting reference image to blob, type:', referenceImageType);
+      
+      // Convert base64 to blob
+      const base64Response = await fetch(`data:${referenceImageType};base64,${referenceImageBase64}`);
+      const imageBlob = await base64Response.blob();
+      
+      // Determine file extension from MIME type
+      const fileExtension = referenceImageType.split('/')[1] || 'jpg';
+      
+      console.log('Reference image converted, appending to form');
+      formData.append('input_reference', imageBlob, `reference.${fileExtension}`);
     }
 
     const createResponse = await fetch('https://api.openai.com/v1/videos', {
