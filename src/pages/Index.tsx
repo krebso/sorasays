@@ -3,6 +3,7 @@ import { Upload, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { GifGenerator } from "@/components/GifGenerator";
 import { ToneSelector } from "@/components/ToneSelector";
 
@@ -49,7 +50,6 @@ const Index = () => {
 
       // Step 1: Analyze conversation and get GIF prompt
       toast.info("Analyzing conversation...");
-      const { supabase } = await import("@/integrations/supabase/client");
       
       const { data: promptData, error: promptError } = await supabase.functions.invoke(
         'analyze-conversation',
