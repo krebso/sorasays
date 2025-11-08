@@ -41,12 +41,67 @@ export const GifGenerator = ({ gifUrl, videoUrl, isConverting, onGenerateNew }: 
     }
 
     try {
-      await navigator.clipboard.writeText(displayUrl);
-      toast.success("GIF link copied to clipboard!");
+      // Fetch the GIF and convert to blob
+      const response = await fetch(displayUrl);
+      const blob = await response.blob();
+      
+      // Try to write image to clipboard
+      try {
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            'image/png': blob.type === 'image/gif' 
+              ? await convertGifToPng(blob) 
+              : blob
+          })
+        ]);
+        toast.success("GIF copied! Paste it with Ctrl+V");
+      } catch (clipError) {
+        // Fallback: copy URL if image clipboard isn't supported
+        await navigator.clipboard.writeText(displayUrl);
+        toast.success("GIF link copied to clipboard!");
+      }
     } catch (error) {
-      toast.error("Failed to copy link. Try downloading instead.");
+      toast.error("Failed to copy. Try downloading instead.");
       console.error(error);
     }
+  };
+
+  // Convert GIF to PNG for better clipboard compatibility
+  const convertGifToPng = async (gifBlob: Blob): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(gifBlob);
+      
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        
+        if (!ctx) {
+          reject(new Error('Could not get canvas context'));
+          return;
+        }
+        
+        ctx.drawImage(img, 0, 0);
+        URL.revokeObjectURL(url);
+        
+        canvas.toBlob((blob) => {
+          if (blob) {
+            resolve(blob);
+          } else {
+            reject(new Error('Could not convert to PNG'));
+          }
+        }, 'image/png');
+      };
+      
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error('Could not load image'));
+      };
+      
+      img.src = url;
+    });
   };
 
   return (
@@ -104,7 +159,7 @@ export const GifGenerator = ({ gifUrl, videoUrl, isConverting, onGenerateNew }: 
               disabled={isConverting}
             >
               <Copy className="w-5 h-5 mr-2" />
-              Copy Link
+              Copy GIF
             </Button>
           )}
           
