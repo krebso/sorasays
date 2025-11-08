@@ -51,26 +51,24 @@ export const GifGenerator = ({ gifUrl, videoUrl, isConverting, onGenerateNew }: 
         )}
         
         {/* GIF/Video Preview */}
-        <div className="rounded-2xl mb-6 flex items-center justify-center overflow-hidden">
-          {isVideo ? (
-            <video
-              src={displayUrl}
-              autoPlay
-              loop
-              muted
-              playsInline
-              controls
-              preload="metadata"
-              className="w-full rounded-2xl"
-            />
-          ) : (
-            <img
-              src={displayUrl}
-              alt="Generated GIF"
-              className="w-full rounded-2xl"
-            />
-          )}
-        </div>
+        {isVideo ? (
+          <video
+            src={displayUrl}
+            autoPlay
+            loop
+            muted
+            playsInline
+            controls
+            preload="metadata"
+            className="w-full rounded-2xl mb-6"
+          />
+        ) : (
+          <img
+            src={displayUrl}
+            alt="Generated GIF"
+            className="w-full rounded-2xl mb-6"
+          />
+        )}
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4">
