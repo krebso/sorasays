@@ -34,10 +34,14 @@ export async function loadFFmpeg(onProgress?: (progress: number) => void): Promi
   const wasmURL = await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm');
   console.log('WASM downloaded');
   
+  const workerURL = await toBlobURL(`${baseURL}/ffmpeg-core.worker.js`, 'text/javascript');
+  console.log('Worker JS downloaded');
+  
   console.log('Loading FFmpeg...');
   await ffmpeg.load({
     coreURL,
     wasmURL,
+    workerURL,
   });
   console.log('FFmpeg loaded successfully!');
 
