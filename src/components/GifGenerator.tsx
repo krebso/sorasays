@@ -22,12 +22,12 @@ export const GifGenerator = ({ gifUrl, videoUrl, isConverting, onGenerateNew }: 
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `sorasays-${Date.now()}.${isVideo ? 'mp4' : 'gif'}`;
+      link.download = `sorasays-${Date.now()}.gif`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-      toast.success(`${isVideo ? 'Video' : 'GIF'} downloaded!`);
+      toast.success('GIF downloaded!');
     } catch (error) {
       toast.error("Failed to download");
       console.error(error);
@@ -88,24 +88,25 @@ export const GifGenerator = ({ gifUrl, videoUrl, isConverting, onGenerateNew }: 
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4">
-          <Button
-            onClick={handleDownload}
-            className="flex-1 h-12 shadow-playful"
-          >
-            <Download className="w-5 h-5 mr-2" />
-            {isVideo ? 'Download Video' : 'Download GIF'}
-          </Button>
-          
           {!isVideo && (
-            <Button
-              onClick={handleCopy}
-              variant="secondary"
-              className="flex-1 h-12"
-              disabled={isConverting}
-            >
-              <Copy className="w-5 h-5 mr-2" />
-              Copy GIF Link
-            </Button>
+            <>
+              <Button
+                onClick={handleDownload}
+                className="flex-1 h-12 shadow-playful"
+              >
+                <Download className="w-5 h-5 mr-2" />
+                Download GIF
+              </Button>
+              
+              <Button
+                onClick={handleCopy}
+                variant="secondary"
+                className="flex-1 h-12"
+              >
+                <Copy className="w-5 h-5 mr-2" />
+                Copy GIF Link
+              </Button>
+            </>
           )}
           
           <Button
