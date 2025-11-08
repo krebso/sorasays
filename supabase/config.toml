@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.convert-to-gif]
 verify_jwt = false
+
+[functions.proxy-image-search]
+verify_jwt = false
