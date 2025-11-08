@@ -45,6 +45,8 @@ CRITICAL REQUIREMENTS:
 - Never mention audio, sound effects, or spoken words - only describe visual text
 - Focus on visual action, emotion, and humor
 - Scene should be 3-5 seconds long
+- IMPORTANT: Do NOT include children, minors, or underage individuals in any capacity
+- Use adult characters, animals, objects, or abstract concepts instead
 
 Generate a detailed, vivid description of a short silent video scene that would make a perfect response GIF. Be specific about visual elements, character actions, and any text that appears on screen.`;
 

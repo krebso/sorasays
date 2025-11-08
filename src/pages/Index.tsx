@@ -115,7 +115,16 @@ const Index = () => {
       );
 
       if (videoError || !videoData?.videoId) {
-        throw new Error(videoError?.message || 'Failed to generate video');
+        console.error('Video generation error:', videoError);
+        const errorMsg = videoError?.message || 'Failed to generate video';
+        
+        // Check for moderation block
+        if (errorMsg.includes('moderation') || errorMsg.includes('blocked')) {
+          toast.error("Content blocked by AI safety filters. Try a different conversation or tone!");
+        } else {
+          toast.error(errorMsg);
+        }
+        throw new Error(errorMsg);
       }
 
       // Step 3: Download the video
