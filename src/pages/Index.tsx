@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { GifGenerator } from "@/components/GifGenerator";
 import { convertVideoToGif } from "@/lib/videoToGif";
 import { ToneSelector } from "@/components/ToneSelector";
+import { resizeImage } from "@/lib/imageResize";
 
 export type Tone = "sarcastic" | "wholesome" | "savage" | "helpful" | "chaotic";
 
@@ -86,18 +87,20 @@ const Index = () => {
       // Step 2: Generate video with Sora
       toast.info("Generating video with AI...");
       
-      // Convert reference image to base64 if provided
+      // Resize and convert reference image if provided
       let referenceImageBase64 = null;
+      let referenceImageType = null;
       if (referenceImage) {
-        const refReader = new FileReader();
-        referenceImageBase64 = await new Promise<string>((resolve, reject) => {
-          refReader.onload = () => {
-            const base64 = refReader.result as string;
-            resolve(base64.split(',')[1]);
-          };
-          refReader.onerror = reject;
-          refReader.readAsDataURL(referenceImage);
-        });
+        toast.info("Resizing reference image...");
+        try {
+          const resized = await resizeImage(referenceImage, 720, 1280);
+          referenceImageBase64 = resized.base64;
+          referenceImageType = resized.mimeType;
+        } catch (error) {
+          console.error('Failed to resize image:', error);
+          toast.error("Failed to process reference image");
+          throw error;
+        }
       }
       
       const { data: videoData, error: videoError } = await supabase.functions.invoke(
@@ -106,7 +109,7 @@ const Index = () => {
           body: {
             prompt: promptData.gifPrompt,
             referenceImageBase64: referenceImageBase64,
-            referenceImageType: referenceImage?.type || null,
+            referenceImageType: referenceImageType,
           },
         }
       );
