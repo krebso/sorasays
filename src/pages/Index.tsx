@@ -15,9 +15,7 @@ const Index = () => {
   const [selectedTone, setSelectedTone] = useState<Tone>("sarcastic");
   const [customInstruction, setCustomInstruction] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedGif, setGeneratedGif] = useState<string | null>(null);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
-  const [isConverting, setIsConverting] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -110,34 +108,7 @@ const Index = () => {
       const videoBlobUrl = URL.createObjectURL(videoBlob);
       setVideoUrl(videoBlobUrl);
       setIsGenerating(false);
-      toast.success("Video ready! Converting to GIF...");
-      
-      // Step 4: Convert to GIF in background
-      setIsConverting(true);
-      toast.info("Loading converter (first time may take 30s)...");
-      
-      // Convert on backend to avoid browser worker/MIME issues
-      const videoBase64 = await new Promise<string>((resolve, reject) => {
-        const r = new FileReader();
-        r.onload = () => resolve((r.result as string).split(',')[1]);
-        r.onerror = reject;
-        r.readAsDataURL(videoBlob);
-      });
-
-      const { data: convData, error: convError } = await supabase.functions.invoke(
-        'convert-to-gif',
-        { body: { videoBase64 } }
-      );
-      if (convError || !convData?.gifBase64) {
-        throw new Error(convError?.message || 'GIF conversion failed');
-      }
-
-      const gifBytes = Uint8Array.from(atob(convData.gifBase64), c => c.charCodeAt(0));
-      const gifBlob = new Blob([gifBytes], { type: 'image/gif' });
-      const gifUrl = URL.createObjectURL(gifBlob);
-      setGeneratedGif(gifUrl);
-      setIsConverting(false);
-      toast.success("GIF conversion complete!");
+      toast.success("Video generated successfully!");
     } catch (error) {
       console.error('Generation error:', error);
       toast.error(error instanceof Error ? error.message : "Failed to generate GIF");
@@ -154,11 +125,11 @@ const Index = () => {
             SoraSays
           </h1>
           <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto">
-            Turn awkward conversations into hilarious response GIFs ✨
+            Turn awkward conversations into hilarious response videos ✨
           </p>
         </div>
 
-        {!generatedGif && !videoUrl ? (
+        {!videoUrl ? (
           <div className="max-w-3xl mx-auto animate-in slide-in-from-bottom duration-500">
             {/* Upload Section */}
             <div className="bg-card rounded-3xl p-8 shadow-card mb-6">
@@ -228,18 +199,15 @@ const Index = () => {
               ) : (
                 <>
                   <Sparkles className="w-5 h-5 mr-2" />
-                  Generate Response GIF
+                  Generate Response Video
                 </>
               )}
             </Button>
           </div>
         ) : (
           <GifGenerator
-            gifUrl={generatedGif}
             videoUrl={videoUrl}
-            isConverting={isConverting}
             onGenerateNew={() => {
-              setGeneratedGif(null);
               setVideoUrl(null);
               setScreenshot(null);
               setCustomInstruction("");
