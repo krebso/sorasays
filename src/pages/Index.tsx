@@ -195,35 +195,40 @@ const Index = () => {
           <div className="max-w-3xl mx-auto animate-in slide-in-from-bottom duration-500">
             {/* Upload Section */}
             <div className="bg-card rounded-3xl p-8 shadow-card mb-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
                 <Upload className="w-6 h-6 text-primary" />
                 Upload Conversation Screenshot
               </h2>
               
-              <div className="border-2 border-dashed border-border rounded-2xl p-8 text-center hover:border-primary transition-colors cursor-pointer">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  className="hidden"
-                  id="file-upload"
-                />
-                <label htmlFor="file-upload" className="cursor-pointer">
-                  {screenshot ? (
-                    <div className="space-y-2">
-                      <div className="text-primary font-semibold">{screenshot.name}</div>
-                      <div className="text-sm text-muted-foreground">Click to change</div>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <Upload className="w-12 h-12 mx-auto text-muted-foreground" />
-                      <div className="text-muted-foreground">
-                        Click to upload or drag and drop
-                      </div>
-                    </div>
-                  )}
-                </label>
-              </div>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
+                id="file-upload"
+              />
+              <label htmlFor="file-upload">
+                <Button 
+                  type="button"
+                  variant={screenshot ? "secondary" : "outline"}
+                  className="w-full"
+                  asChild
+                >
+                  <span className="cursor-pointer">
+                    {screenshot ? (
+                      <>
+                        <Upload className="w-4 h-4" />
+                        {screenshot.name}
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-4 h-4" />
+                        Choose Screenshot
+                      </>
+                    )}
+                  </span>
+                </Button>
+              </label>
             </div>
 
             {/* Tone Selection */}
@@ -234,34 +239,40 @@ const Index = () => {
 
             {/* Reference Image */}
             <div className="bg-card rounded-3xl p-8 shadow-card mb-6">
-              <h2 className="text-2xl font-bold mb-6">Reference Image (Optional)</h2>
+              <h2 className="text-2xl font-bold mb-4">Reference Image (Optional)</h2>
               <p className="text-sm text-muted-foreground mb-4">
                 Upload an image to inspire the visual style of your GIF
               </p>
-              <div className="border-2 border-dashed border-border rounded-2xl p-6 text-center hover:border-primary transition-colors cursor-pointer">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleReferenceImageChange}
-                  className="hidden"
-                  id="reference-upload"
-                />
-                <label htmlFor="reference-upload" className="cursor-pointer">
-                  {referenceImage ? (
-                    <div className="space-y-2">
-                      <div className="text-primary font-semibold">{referenceImage.name}</div>
-                      <div className="text-sm text-muted-foreground">Click to change</div>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <Upload className="w-8 h-8 mx-auto text-muted-foreground" />
-                      <div className="text-sm text-muted-foreground">
-                        Click to upload reference image
-                      </div>
-                    </div>
-                  )}
-                </label>
-              </div>
+              
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleReferenceImageChange}
+                className="hidden"
+                id="reference-upload"
+              />
+              <label htmlFor="reference-upload">
+                <Button 
+                  type="button"
+                  variant={referenceImage ? "secondary" : "outline"}
+                  className="w-full"
+                  asChild
+                >
+                  <span className="cursor-pointer">
+                    {referenceImage ? (
+                      <>
+                        <Upload className="w-4 h-4" />
+                        {referenceImage.name}
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-4 h-4" />
+                        Choose Reference Image
+                      </>
+                    )}
+                  </span>
+                </Button>
+              </label>
             </div>
 
             {/* Custom Instructions */}
