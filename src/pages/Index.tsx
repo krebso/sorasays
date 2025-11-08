@@ -16,6 +16,8 @@ const Index = () => {
   const [customInstruction, setCustomInstruction] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedGif, setGeneratedGif] = useState<string | null>(null);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [isConverting, setIsConverting] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -104,8 +106,16 @@ const Index = () => {
 
       const videoBlob = await downloadResp.blob();
       
-      // Step 4: Convert to GIF
+      // Show video preview immediately
+      const videoBlobUrl = URL.createObjectURL(videoBlob);
+      setVideoUrl(videoBlobUrl);
+      setIsGenerating(false);
+      toast.success("Video ready! Converting to GIF...");
+      
+      // Step 4: Convert to GIF in background
+      setIsConverting(true);
       toast.info("Loading converter (first time may take 30s)...");
+      
       const gifBlob = await convertVideoToGif(videoBlob, (progress) => {
         console.log(`Conversion progress: ${progress}%`);
         if (progress > 0) {
@@ -115,9 +125,8 @@ const Index = () => {
       
       const gifUrl = URL.createObjectURL(gifBlob);
       setGeneratedGif(gifUrl);
-
-      toast.success("Your response GIF is ready!");
-      setIsGenerating(false);
+      setIsConverting(false);
+      toast.success("GIF conversion complete!");
     } catch (error) {
       console.error('Generation error:', error);
       toast.error(error instanceof Error ? error.message : "Failed to generate GIF");
@@ -216,8 +225,11 @@ const Index = () => {
         ) : (
           <GifGenerator
             gifUrl={generatedGif}
+            videoUrl={videoUrl}
+            isConverting={isConverting}
             onGenerateNew={() => {
               setGeneratedGif(null);
+              setVideoUrl(null);
               setScreenshot(null);
               setCustomInstruction("");
             }}
