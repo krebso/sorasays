@@ -180,13 +180,13 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-hero">
-      <div className="container mx-auto px-4 py-8 md:py-16">
+      <div className="container mx-auto px-4 py-6">
         {/* Header */}
-        <div className="text-center mb-12 animate-in fade-in duration-500">
-          <h1 className="text-5xl md:text-7xl font-bold mb-4 bg-gradient-gold bg-clip-text text-transparent">
+        <div className="text-center mb-6 animate-in fade-in duration-500">
+          <h1 className="text-4xl md:text-5xl font-bold mb-2 bg-gradient-gold bg-clip-text text-transparent">
             SoraSays
           </h1>
-          <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
             Turn awkward conversations into hilarious response GIFs ✨
           </p>
         </div>
@@ -194,9 +194,9 @@ const Index = () => {
         {!generatedGif && !videoUrl ? (
           <div className="max-w-3xl mx-auto animate-in slide-in-from-bottom duration-500">
             {/* Upload Section */}
-            <div className="bg-card rounded-3xl p-8 shadow-card mb-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                <Upload className="w-6 h-6 text-primary" />
+            <div className="bg-card rounded-2xl p-4 shadow-card mb-4">
+              <h2 className="text-lg font-bold mb-3 flex items-center gap-2">
+                <Upload className="w-5 h-5 text-primary" />
                 Upload Conversation Screenshot
               </h2>
               
@@ -232,15 +232,15 @@ const Index = () => {
             </div>
 
             {/* Tone Selection */}
-            <div className="bg-card rounded-3xl p-8 shadow-card mb-6">
-              <h2 className="text-2xl font-bold mb-6">Select Your Vibe</h2>
+            <div className="bg-card rounded-2xl p-4 shadow-card mb-4">
+              <h2 className="text-lg font-bold mb-3">Select Your Vibe</h2>
               <ToneSelector selectedTone={selectedTone} onToneChange={setSelectedTone} />
             </div>
 
             {/* Reference Image */}
-            <div className="bg-card rounded-3xl p-8 shadow-card mb-6">
-              <h2 className="text-2xl font-bold mb-4">Reference Image (Optional)</h2>
-              <p className="text-sm text-muted-foreground mb-4">
+            <div className="bg-card rounded-2xl p-4 shadow-card mb-4">
+              <h2 className="text-lg font-bold mb-2">Reference Image (Optional)</h2>
+              <p className="text-xs text-muted-foreground mb-3">
                 Upload an image to inspire the visual style of your GIF
               </p>
               
@@ -276,16 +276,16 @@ const Index = () => {
             </div>
 
             {/* Custom Instructions */}
-            <div className="bg-card rounded-3xl p-8 shadow-card mb-6">
-              <h2 className="text-2xl font-bold mb-4">Custom Instructions (Optional)</h2>
+            <div className="bg-card rounded-2xl p-4 shadow-card mb-4">
+              <h2 className="text-lg font-bold mb-2">Custom Instructions (Optional)</h2>
               <Textarea
                 placeholder="Add any specific details about how you want your GIF to look..."
                 value={customInstruction}
                 onChange={(e) => setCustomInstruction(e.target.value.slice(0, 500))}
                 maxLength={500}
-                className="min-h-[100px] resize-none"
+                className="min-h-[70px] resize-none"
               />
-              <p className="text-sm text-muted-foreground mt-2">
+              <p className="text-xs text-muted-foreground mt-1">
                 {customInstruction.length}/500 characters
               </p>
             </div>
@@ -294,7 +294,7 @@ const Index = () => {
             <Button
               onClick={handleGenerate}
               disabled={!screenshot || isGenerating}
-              className="w-full h-14 text-lg font-semibold shadow-playful hover:scale-[1.02] transition-transform"
+              className="w-full h-12 text-base font-semibold shadow-playful hover:scale-[1.02] transition-transform"
             >
               {isGenerating ? (
                 <>

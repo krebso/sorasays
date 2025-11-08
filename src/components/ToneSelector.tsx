@@ -22,17 +22,17 @@ export const ToneSelector = ({ selectedTone, onToneChange }: ToneSelectorProps) 
           key={tone.value}
           onClick={() => onToneChange(tone.value)}
           className={cn(
-            "group relative p-4 rounded-2xl border-2 transition-all hover:scale-105",
+            "group relative p-3 rounded-xl border-2 transition-all hover:scale-105",
             selectedTone === tone.value
               ? "border-primary bg-primary/10 shadow-playful"
               : "border-border bg-background hover:border-primary/50"
           )}
         >
-          <span className="font-semibold text-sm">{tone.label}</span>
+          <span className="font-semibold text-xs">{tone.label}</span>
           
           {selectedTone === tone.value && (
-            <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-              <div className="w-2 h-2 rounded-full bg-white" />
+            <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+              <div className="w-1.5 h-1.5 rounded-full bg-white" />
             </div>
           )}
         </button>
