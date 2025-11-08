@@ -8,12 +8,15 @@ import { GifGenerator } from "@/components/GifGenerator";
 import { convertVideoToGif } from "@/lib/videoToGif";
 import { ToneSelector } from "@/components/ToneSelector";
 import { resizeImage } from "@/lib/imageResize";
+import { ImageSearch } from "@/components/ImageSearch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export type Tone = "sarcastic" | "wholesome" | "savage" | "helpful" | "chaotic";
 
 const Index = () => {
   const [screenshot, setScreenshot] = useState<File | null>(null);
   const [referenceImage, setReferenceImage] = useState<File | null>(null);
+  const [searchedImageUrl, setSearchedImageUrl] = useState<string | null>(null);
   const [selectedTone, setSelectedTone] = useState<Tone>("sarcastic");
   const [customInstruction, setCustomInstruction] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -29,8 +32,15 @@ const Index = () => {
         return;
       }
       setReferenceImage(file);
+      setSearchedImageUrl(null); // Clear searched image when uploading
       toast.success("Reference image uploaded!");
     }
+  };
+
+  const handleSearchImageSelect = (imageUrl: string) => {
+    setSearchedImageUrl(imageUrl);
+    setReferenceImage(null); // Clear uploaded image when selecting from search
+    toast.success("Reference image selected!");
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -90,6 +100,7 @@ const Index = () => {
       // Resize and convert reference image if provided
       let referenceImageBase64 = null;
       let referenceImageType = null;
+      
       if (referenceImage) {
         toast.info("Resizing reference image...");
         try {
@@ -99,6 +110,25 @@ const Index = () => {
         } catch (error) {
           console.error('Failed to resize image:', error);
           toast.error("Failed to process reference image");
+          throw error;
+        }
+      } else if (searchedImageUrl) {
+        toast.info("Processing searched image...");
+        try {
+          // Fetch the image from URL
+          const response = await fetch(searchedImageUrl);
+          const blob = await response.blob();
+          
+          // Convert blob to File
+          const file = new File([blob], "searched-image.jpg", { type: blob.type });
+          
+          // Resize the image
+          const resized = await resizeImage(file, 720, 1280);
+          referenceImageBase64 = resized.base64;
+          referenceImageType = resized.mimeType;
+        } catch (error) {
+          console.error('Failed to process searched image:', error);
+          toast.error("Failed to process searched image");
           throw error;
         }
       }
@@ -244,38 +274,54 @@ const Index = () => {
                 Reference Image (Optional)
               </h2>
               <p className="text-xs text-muted-foreground mb-3">
-                Upload an image to inspire the visual style of your GIF
+                Search or upload an image to inspire the visual style of your GIF
               </p>
               
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleReferenceImageChange}
-                className="hidden"
-                id="reference-upload"
-              />
-              <label htmlFor="reference-upload">
-                <Button 
-                  type="button"
-                  variant={referenceImage ? "secondary" : "outline"}
-                  className="w-full"
-                  asChild
-                >
-                  <span className="cursor-pointer">
-                    {referenceImage ? (
-                      <>
-                        <Upload className="w-4 h-4" />
-                        {referenceImage.name}
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="w-4 h-4" />
-                        Choose Reference Image
-                      </>
-                    )}
-                  </span>
-                </Button>
-              </label>
+              <Tabs defaultValue="search" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="search">Search</TabsTrigger>
+                  <TabsTrigger value="upload">Upload</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="search" className="mt-3">
+                  <ImageSearch
+                    onImageSelect={handleSearchImageSelect}
+                    selectedImageUrl={searchedImageUrl}
+                  />
+                </TabsContent>
+                
+                <TabsContent value="upload" className="mt-3">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleReferenceImageChange}
+                    className="hidden"
+                    id="reference-upload"
+                  />
+                  <label htmlFor="reference-upload">
+                    <Button 
+                      type="button"
+                      variant={referenceImage ? "secondary" : "outline"}
+                      className="w-full"
+                      asChild
+                    >
+                      <span className="cursor-pointer">
+                        {referenceImage ? (
+                          <>
+                            <Upload className="w-4 h-4" />
+                            {referenceImage.name}
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-4 h-4" />
+                            Choose Reference Image
+                          </>
+                        )}
+                      </span>
+                    </Button>
+                  </label>
+                </TabsContent>
+              </Tabs>
             </div>
 
             {/* Custom Instructions */}
@@ -322,6 +368,7 @@ const Index = () => {
               setVideoUrl(null);
               setScreenshot(null);
               setReferenceImage(null);
+              setSearchedImageUrl(null);
               setCustomInstruction("");
             }}
           />
