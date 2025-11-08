@@ -51,7 +51,7 @@ export const GifGenerator = ({ gifUrl, videoUrl, isConverting, onGenerateNew }: 
         )}
         
         {/* GIF/Video Preview */}
-        <div className="aspect-video bg-muted rounded-2xl mb-6 flex items-center justify-center overflow-hidden">
+        <div className="bg-muted rounded-2xl mb-6 flex items-center justify-center overflow-hidden">
           {isVideo ? (
             <video
               src={displayUrl}
@@ -61,13 +61,13 @@ export const GifGenerator = ({ gifUrl, videoUrl, isConverting, onGenerateNew }: 
               playsInline
               controls
               preload="metadata"
-              className="w-full h-full object-contain"
+              className="w-full rounded-2xl"
             />
           ) : (
             <img
               src={displayUrl}
               alt="Generated GIF"
-              className="w-full h-full object-contain"
+              className="w-full rounded-2xl"
             />
           )}
         </div>
