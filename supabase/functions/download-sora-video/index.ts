@@ -34,11 +34,17 @@ serve(async (req) => {
       throw new Error('Failed to download video');
     }
 
-    // Stream the video directly to the client
+    // Stream the video directly to the client with proper headers
+    const contentLength = downloadResponse.headers.get('content-length');
+    const contentDisposition = downloadResponse.headers.get('content-disposition') || 'inline; filename="sorasays.mp4"';
+
     return new Response(downloadResponse.body, {
       headers: {
         ...corsHeaders,
         'Content-Type': 'video/mp4',
+        ...(contentLength ? { 'Content-Length': contentLength } : {}),
+        'Content-Disposition': contentDisposition,
+        'Accept-Ranges': 'bytes',
       },
     });
   } catch (error) {

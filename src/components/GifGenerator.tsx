@@ -73,12 +73,15 @@ export const GifGenerator = ({ gifUrl, onGenerateNew }: GifGeneratorProps) => {
         <div className="aspect-video bg-muted rounded-2xl mb-6 flex items-center justify-center overflow-hidden">
           {isVideo ? (
             <video
-              src={gifUrl}
-              autoPlay
-              loop
-              muted
-              className="w-full h-full object-contain"
-            />
+               src={gifUrl}
+               autoPlay
+               loop
+               muted
+               playsInline
+               controls
+               preload="metadata"
+               className="w-full h-full object-contain"
+             />
           ) : isBase64 ? (
             <img
               src={gifUrl}
