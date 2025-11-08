@@ -35,16 +35,30 @@ export async function loadFFmpeg(onProgress?: (progress: number) => void): Promi
     const wasmURL = await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm');
     console.log('WASM downloaded');
     
-    const workerURL = await toBlobURL(`${baseURL}/ffmpeg-core.worker.js`, 'text/javascript');
-    console.log('Worker JS downloaded');
+    // Try to load the worker from CDN, but fall back to an inline worker if unavailable
+    let workerURL: string;
+    try {
+      workerURL = await toBlobURL(`${baseURL}/ffmpeg-core.worker.js`, 'text/javascript');
+      console.log('Worker JS downloaded');
+    } catch (err) {
+      console.warn('Worker JS not found on CDN, creating inline worker via importScripts fallback.', err);
+      const workerBlob = new Blob([`self.importScripts("${coreURL}");`], { type: 'text/javascript' });
+      workerURL = URL.createObjectURL(workerBlob);
+      console.log('Fallback worker created from coreURL');
+    }
     console.log('Using workerURL:', workerURL);
     
     console.log('Loading FFmpeg...');
-    await instance.load({
+    const loadPromise = instance.load({
       coreURL,
       wasmURL,
       workerURL,
     });
+    // Add a safety timeout so we don't hang forever if something goes wrong
+    await Promise.race([
+      loadPromise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('FFmpeg load timeout after 30s')), 30000)),
+    ]);
     console.log('FFmpeg loaded successfully!');
 
     ffmpeg = instance;
