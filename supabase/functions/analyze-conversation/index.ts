@@ -14,7 +14,7 @@ serve(async (req) => {
   }
 
   try {
-    const { imageBase64, tone, customInstruction } = await req.json();
+    const { imageBase64, tone, customInstruction, referenceImageBase64, referenceImageType } = await req.json();
 
     // Validate inputs
     if (!imageBase64 || typeof imageBase64 !== 'string') {
@@ -32,12 +32,17 @@ serve(async (req) => {
       : '';
 
     console.log('Analyzing conversation with tone:', tone);
+    if (referenceImageBase64) {
+      console.log('Reference image provided, will be considered in prompt generation');
+    }
 
     const systemPrompt = `You are given a screenshot of a conversation that likely left the recipient unable to formulate an appropriate response. Your task is to generate a funny, creative GIF/video idea that could be used as a reply to this sequence of messages.
 
 User wants the tone of the gif: ${tone}
 
 User's custom instructions: ${sanitizedInstruction || 'None'}
+
+${referenceImageBase64 ? 'IMPORTANT: A reference image has been provided. Use its visual style, mood, color palette, and aesthetic as inspiration for the video. The generated video should match or be influenced by the reference image\'s look and feel.' : ''}
 
 CRITICAL REQUIREMENTS:
 - The video MUST be SILENT (no audio/sound effects)
@@ -72,9 +77,17 @@ Generate a detailed, vivid description of a short silent video scene that would 
                   url: `data:image/jpeg;base64,${imageBase64}`
                 }
               },
+              ...(referenceImageBase64 ? [{
+                type: 'image_url',
+                image_url: {
+                  url: `data:${referenceImageType || 'image/jpeg'};base64,${referenceImageBase64}`
+                }
+              }] : []),
               {
                 type: 'text',
-                text: 'Based on this conversation screenshot, generate a perfect response GIF idea.'
+                text: referenceImageBase64 
+                  ? 'Based on this conversation screenshot and the reference image provided, generate a perfect response GIF idea that matches the visual style of the reference.'
+                  : 'Based on this conversation screenshot, generate a perfect response GIF idea.'
               }
             ]
           }

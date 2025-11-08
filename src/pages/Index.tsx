@@ -64,6 +64,50 @@ const Index = () => {
 
     setIsGenerating(true);
     
+    // First, process reference image if needed
+    let referenceImageBase64 = null;
+    let referenceImageType = null;
+    
+    if (referenceImage) {
+      toast.info("Processing reference image...");
+      try {
+        const resized = await resizeImage(referenceImage, 720, 1280);
+        referenceImageBase64 = resized.base64;
+        referenceImageType = resized.mimeType;
+      } catch (error) {
+        console.error('Failed to resize image:', error);
+        toast.error("Failed to process reference image");
+        throw error;
+      }
+    } else if (searchedImageUrl) {
+      toast.info("Processing searched image...");
+      try {
+        // Fetch the image via backend proxy to avoid CORS issues
+        const { data, error } = await supabase.functions.invoke('proxy-image-fetch', {
+          body: { url: searchedImageUrl },
+        });
+
+        if (error || !data?.base64) {
+          throw new Error(error?.message || 'Failed to fetch searched image');
+        }
+
+        // Recreate a Blob/File from base64
+        const dataUrl = `data:${data.mimeType};base64,${data.base64}`;
+        const resp = await fetch(dataUrl);
+        const blob = await resp.blob();
+        const file = new File([blob], "searched-image", { type: data.mimeType || 'image/jpeg' });
+        
+        // Resize the image
+        const resized = await resizeImage(file, 720, 1280);
+        referenceImageBase64 = resized.base64;
+        referenceImageType = resized.mimeType;
+      } catch (error) {
+        console.error('Failed to process searched image:', error);
+        toast.error("Failed to process searched image");
+        throw error;
+      }
+    }
+    
     try {
       // Convert image to base64
       const reader = new FileReader();
@@ -86,6 +130,8 @@ const Index = () => {
             imageBase64,
             tone: selectedTone,
             customInstruction,
+            referenceImageBase64,
+            referenceImageType,
           },
         }
       );
@@ -96,50 +142,6 @@ const Index = () => {
 
       // Step 2: Generate video with Sora
       toast.info("Generating video with AI...");
-      
-      // Resize and convert reference image if provided
-      let referenceImageBase64 = null;
-      let referenceImageType = null;
-      
-      if (referenceImage) {
-        toast.info("Resizing reference image...");
-        try {
-          const resized = await resizeImage(referenceImage, 720, 1280);
-          referenceImageBase64 = resized.base64;
-          referenceImageType = resized.mimeType;
-        } catch (error) {
-          console.error('Failed to resize image:', error);
-          toast.error("Failed to process reference image");
-          throw error;
-        }
-      } else if (searchedImageUrl) {
-        toast.info("Processing searched image...");
-        try {
-          // Fetch the image via backend proxy to avoid CORS issues
-          const { data, error } = await supabase.functions.invoke('proxy-image-fetch', {
-            body: { url: searchedImageUrl },
-          });
-
-          if (error || !data?.base64) {
-            throw new Error(error?.message || 'Failed to fetch searched image');
-          }
-
-          // Recreate a Blob/File from base64
-          const dataUrl = `data:${data.mimeType};base64,${data.base64}`;
-          const resp = await fetch(dataUrl);
-          const blob = await resp.blob();
-          const file = new File([blob], "searched-image", { type: data.mimeType || 'image/jpeg' });
-          
-          // Resize the image
-          const resized = await resizeImage(file, 720, 1280);
-          referenceImageBase64 = resized.base64;
-          referenceImageType = resized.mimeType;
-        } catch (error) {
-          console.error('Failed to process searched image:', error);
-          toast.error("Failed to process searched image");
-          throw error;
-        }
-      }
       
       const { data: videoData, error: videoError } = await supabase.functions.invoke(
         'generate-sora-video',
