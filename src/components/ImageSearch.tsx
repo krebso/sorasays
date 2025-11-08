@@ -31,7 +31,7 @@ export const ImageSearch = ({ onImageSelect, selectedImageUrl }: ImageSearchProp
     setIsSearching(true);
     try {
       const response = await fetch(
-        `https://agent-middle-primary-washing.trycloudflare.com/search?prompt=${encodeURIComponent(searchQuery)}`
+        `https://copying-tracy-analyzed-imported.trycloudflare.com/search?prompt=${encodeURIComponent(searchQuery)}`
       );
 
       if (!response.ok) {
