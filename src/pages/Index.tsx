@@ -105,9 +105,12 @@ const Index = () => {
       const videoBlob = await downloadResp.blob();
       
       // Step 4: Convert to GIF
-      toast.info("Converting to GIF (this may take a moment)...");
+      toast.info("Loading converter (first time may take 30s)...");
       const gifBlob = await convertVideoToGif(videoBlob, (progress) => {
         console.log(`Conversion progress: ${progress}%`);
+        if (progress > 0) {
+          toast.info(`Converting to GIF: ${progress}%`);
+        }
       });
       
       const gifUrl = URL.createObjectURL(gifBlob);
