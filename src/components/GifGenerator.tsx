@@ -102,14 +102,16 @@ export const GifGenerator = ({ gifUrl, onGenerateNew }: GifGeneratorProps) => {
             {isVideo ? 'Download Video' : 'Download GIF'}
           </Button>
           
-          <Button
-            onClick={handleCopy}
-            variant="secondary"
-            className="flex-1 h-12"
-          >
-            <Copy className="w-5 h-5 mr-2" />
-            Copy to Clipboard
-          </Button>
+          {!isVideo && (
+            <Button
+              onClick={handleCopy}
+              variant="secondary"
+              className="flex-1 h-12"
+            >
+              <Copy className="w-5 h-5 mr-2" />
+              Copy to Clipboard
+            </Button>
+          )}
           
           <Button
             onClick={onGenerateNew}
@@ -120,6 +122,12 @@ export const GifGenerator = ({ gifUrl, onGenerateNew }: GifGeneratorProps) => {
             New GIF
           </Button>
         </div>
+        
+        {isVideo && (
+          <p className="text-sm text-muted-foreground text-center mt-2">
+            💡 Videos can't be copied to clipboard - use the download button instead
+          </p>
+        )}
       </div>
     </div>
   );
