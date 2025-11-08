@@ -52,6 +52,7 @@ CRITICAL REQUIREMENTS:
 - Scene should be 3-5 seconds long
 - IMPORTANT: Do NOT include children, minors, or underage individuals in any capacity
 - Use adult characters, animals, objects, or abstract concepts instead
+- AVOID copyrighted material: Do not suggest specific copyrighted characters, branded content, trademarked names, or recognizable intellectual property. Use generic descriptions instead (e.g., "a superhero" instead of "Spider-Man", "an animated mouse" instead of "Mickey Mouse")
 
 Generate a detailed, vivid description of a short silent video scene that would make a perfect response GIF. Be specific about visual elements, character actions, and any text that appears on screen.`;
 
