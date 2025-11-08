@@ -83,21 +83,25 @@ const Index = () => {
 
       // Step 3: Download the video
       toast.info("Downloading video...");
-      const { data: downloadData, error: downloadError } = await supabase.functions.invoke(
-        'download-sora-video',
+
+      const downloadResp = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/download-sora-video`,
         {
-          body: {
-            videoId: videoData.videoId,
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
+          body: JSON.stringify({ videoId: videoData.videoId }),
         }
       );
 
-      if (downloadError) {
-        throw new Error(downloadError?.message || 'Failed to download video');
+      if (!downloadResp.ok) {
+        const t = await downloadResp.text();
+        throw new Error(t || 'Failed to download video');
       }
 
-      // Create blob URL from the downloaded video
-      const videoBlob = new Blob([downloadData], { type: 'video/mp4' });
+      const videoBlob = await downloadResp.blob();
       const videoUrl = URL.createObjectURL(videoBlob);
       
       setGeneratedGif(videoUrl);

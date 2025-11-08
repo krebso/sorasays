@@ -24,6 +24,7 @@ serve(async (req) => {
       {
         headers: {
           'Authorization': `Bearer ${openAIApiKey}`,
+          'Accept': 'video/mp4',
         },
       }
     );
