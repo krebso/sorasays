@@ -45,21 +45,17 @@ export const GifGenerator = ({ gifUrl, onGenerateNew }: GifGeneratorProps) => {
 
   const handleCopy = async () => {
     try {
-      if (isBase64) {
-        // Convert base64 to blob and copy
-        const response = await fetch(gifUrl);
-        const blob = await response.blob();
-        await navigator.clipboard.write([
-          new ClipboardItem({ [blob.type]: blob })
-        ]);
-        toast.success("GIF copied to clipboard!");
-      } else {
-        // Copy URL to clipboard
-        await navigator.clipboard.writeText(gifUrl);
-        toast.success("Link copied to clipboard!");
-      }
+      // Always fetch and copy the actual blob data
+      const response = await fetch(gifUrl);
+      const blob = await response.blob();
+      
+      await navigator.clipboard.write([
+        new ClipboardItem({ [blob.type]: blob })
+      ]);
+      
+      toast.success(isVideo ? "Video copied to clipboard!" : "GIF copied to clipboard!");
     } catch (error) {
-      toast.error("Failed to copy");
+      toast.error("Failed to copy. Try downloading instead.");
       console.error(error);
     }
   };
