@@ -41,16 +41,10 @@ export const GifGenerator = ({ gifUrl, videoUrl, isConverting, onGenerateNew }: 
     }
 
     try {
-      const response = await fetch(displayUrl);
-      const blob = await response.blob();
-      
-      await navigator.clipboard.write([
-        new ClipboardItem({ [blob.type]: blob })
-      ]);
-      
-      toast.success("GIF copied to clipboard!");
+      await navigator.clipboard.writeText(displayUrl);
+      toast.success("GIF link copied to clipboard!");
     } catch (error) {
-      toast.error("Failed to copy. Try downloading instead.");
+      toast.error("Failed to copy link. Try downloading instead.");
       console.error(error);
     }
   };
@@ -110,7 +104,7 @@ export const GifGenerator = ({ gifUrl, videoUrl, isConverting, onGenerateNew }: 
               disabled={isConverting}
             >
               <Copy className="w-5 h-5 mr-2" />
-              Copy to Clipboard
+              Copy Link
             </Button>
           )}
           
