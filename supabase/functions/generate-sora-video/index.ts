@@ -19,18 +19,18 @@ serve(async (req) => {
     console.log('Generating video with Sora API for prompt:', prompt);
 
     // Step 1: Create the video generation request
-    const createResponse = await fetch('https://api.openai.com/v1/videos/generations', {
+    const formData = new FormData();
+    formData.append('model', 'sora-2');
+    formData.append('prompt', prompt);
+    formData.append('size', '1280x720');
+    formData.append('seconds', '5');
+
+    const createResponse = await fetch('https://api.openai.com/v1/videos', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        model: 'sora-1.0-turbo',
-        prompt: prompt,
-        size: '480p',
-        duration: 5,
-      }),
+      body: formData,
     });
 
     if (!createResponse.ok) {
@@ -40,21 +40,21 @@ serve(async (req) => {
     }
 
     const createData = await createResponse.json();
-    const generationId = createData.id;
+    const videoId = createData.id;
 
-    console.log('Video generation started, ID:', generationId);
+    console.log('Video generation started, ID:', videoId);
 
     // Step 2: Poll for completion
-    let videoUrl = null;
+    let videoData = null;
     let attempts = 0;
     const maxAttempts = 60; // 5 minutes max (5 second intervals)
 
-    while (!videoUrl && attempts < maxAttempts) {
+    while (!videoData && attempts < maxAttempts) {
       await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
       attempts++;
 
       const statusResponse = await fetch(
-        `https://api.openai.com/v1/videos/generations/${generationId}`,
+        `https://api.openai.com/v1/videos/${videoId}`,
         {
           headers: {
             'Authorization': `Bearer ${openAIApiKey}`,
@@ -68,35 +68,44 @@ serve(async (req) => {
       }
 
       const statusData = await statusResponse.json();
-      console.log(`Status check ${attempts}:`, statusData.status);
+      console.log(`Status check ${attempts}:`, statusData.status, `Progress: ${statusData.progress || 0}%`);
 
       if (statusData.status === 'completed') {
-        videoUrl = statusData.output?.url;
+        videoData = statusData;
         break;
       } else if (statusData.status === 'failed') {
         throw new Error('Video generation failed');
       }
     }
 
-    if (!videoUrl) {
+    if (!videoData) {
       throw new Error('Video generation timed out');
     }
 
-    console.log('Video generated successfully:', videoUrl);
+    console.log('Video generated successfully');
 
-    // Step 3: Download the video
-    const videoResponse = await fetch(videoUrl);
-    if (!videoResponse.ok) {
-      throw new Error('Failed to download video');
+    // Step 3: Get the download URL
+    const downloadResponse = await fetch(
+      `https://api.openai.com/v1/videos/${videoId}/content`,
+      {
+        headers: {
+          'Authorization': `Bearer ${openAIApiKey}`,
+        },
+      }
+    );
+
+    if (!downloadResponse.ok) {
+      throw new Error('Failed to get video download URL');
     }
 
-    const videoBlob = await videoResponse.arrayBuffer();
+    // Get the video blob
+    const videoBlob = await downloadResponse.arrayBuffer();
     const base64Video = btoa(String.fromCharCode(...new Uint8Array(videoBlob)));
 
     return new Response(
       JSON.stringify({ 
         videoBase64: base64Video,
-        videoUrl: videoUrl
+        videoId: videoId
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -114,3 +123,4 @@ serve(async (req) => {
     );
   }
 });
+
