@@ -54,6 +54,7 @@ export async function loadFFmpeg(onProgress?: (progress: number) => void): Promi
       coreURL,
       wasmURL,
       workerURL,
+      classWorkerURL: workerURL,
     });
     // Add a safety timeout so we don't hang forever if something goes wrong
     await Promise.race([
