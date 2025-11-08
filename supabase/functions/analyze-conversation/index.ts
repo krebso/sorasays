@@ -33,13 +33,20 @@ serve(async (req) => {
 
     console.log('Analyzing conversation with tone:', tone);
 
-    const systemPrompt = `You are given a screenshot of a conversation that likely left the recipient unable to formulate an appropriate response. Your task is to generate a funny, creative video/GIF idea that could be used as a reply to this sequence of messages.
+    const systemPrompt = `You are given a screenshot of a conversation that likely left the recipient unable to formulate an appropriate response. Your task is to generate a funny, creative GIF/video idea that could be used as a reply to this sequence of messages.
 
 User wants the tone of the gif: ${tone}
 
 User's custom instructions: ${sanitizedInstruction || 'None'}
 
-Generate a detailed, vivid description of a short video scene (3-5 seconds) that would make a perfect response GIF. Focus on visual action, emotion, and humor. Be specific about what's happening in the scene.`;
+CRITICAL REQUIREMENTS:
+- The video MUST be SILENT (no audio/sound effects)
+- Any text or dialogue MUST be drawn/displayed visually in the frame (like subtitles or text overlays)
+- Never mention audio, sound effects, or spoken words - only describe visual text
+- Focus on visual action, emotion, and humor
+- Scene should be 3-5 seconds long
+
+Generate a detailed, vivid description of a short silent video scene that would make a perfect response GIF. Be specific about visual elements, character actions, and any text that appears on screen.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',

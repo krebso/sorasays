@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { GifGenerator } from "@/components/GifGenerator";
-
+import { convertVideoToGif } from "@/lib/videoToGif";
 import { ToneSelector } from "@/components/ToneSelector";
 
 export type Tone = "sarcastic" | "wholesome" | "savage" | "helpful" | "chaotic";
@@ -15,7 +15,9 @@ const Index = () => {
   const [selectedTone, setSelectedTone] = useState<Tone>("sarcastic");
   const [customInstruction, setCustomInstruction] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedGif, setGeneratedGif] = useState<string | null>(null);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [isConverting, setIsConverting] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -107,8 +109,25 @@ const Index = () => {
       // Show video preview immediately
       const videoBlobUrl = URL.createObjectURL(videoBlob);
       setVideoUrl(videoBlobUrl);
+      toast.success("Video ready! Converting to GIF...");
+      
+      // Convert to GIF
+      setIsConverting(true);
       setIsGenerating(false);
-      toast.success("Video generated successfully!");
+      
+      const gifBlob = await convertVideoToGif(videoBlobUrl, (progress) => {
+        console.log(`GIF conversion progress: ${progress}%`);
+        if (progress < 50) {
+          toast.info(`Extracting frames: ${progress * 2}%`);
+        } else {
+          toast.info(`Encoding GIF: ${(progress - 50) * 2}%`);
+        }
+      });
+      
+      const gifUrl = URL.createObjectURL(gifBlob);
+      setGeneratedGif(gifUrl);
+      setIsConverting(false);
+      toast.success("GIF generated successfully!");
     } catch (error) {
       console.error('Generation error:', error);
       toast.error(error instanceof Error ? error.message : "Failed to generate GIF");
@@ -125,11 +144,11 @@ const Index = () => {
             SoraSays
           </h1>
           <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto">
-            Turn awkward conversations into hilarious response videos ✨
+            Turn awkward conversations into hilarious response GIFs ✨
           </p>
         </div>
 
-        {!videoUrl ? (
+        {!generatedGif && !videoUrl ? (
           <div className="max-w-3xl mx-auto animate-in slide-in-from-bottom duration-500">
             {/* Upload Section */}
             <div className="bg-card rounded-3xl p-8 shadow-card mb-6">
@@ -199,15 +218,18 @@ const Index = () => {
               ) : (
                 <>
                   <Sparkles className="w-5 h-5 mr-2" />
-                  Generate Response Video
+                  Generate Response GIF
                 </>
               )}
             </Button>
           </div>
         ) : (
           <GifGenerator
+            gifUrl={generatedGif}
             videoUrl={videoUrl}
+            isConverting={isConverting}
             onGenerateNew={() => {
+              setGeneratedGif(null);
               setVideoUrl(null);
               setScreenshot(null);
               setCustomInstruction("");
