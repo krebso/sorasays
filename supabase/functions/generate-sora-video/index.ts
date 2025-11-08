@@ -84,28 +84,12 @@ serve(async (req) => {
 
     console.log('Video generated successfully');
 
-    // Step 3: Get the download URL
-    const downloadResponse = await fetch(
-      `https://api.openai.com/v1/videos/${videoId}/content`,
-      {
-        headers: {
-          'Authorization': `Bearer ${openAIApiKey}`,
-        },
-      }
-    );
-
-    if (!downloadResponse.ok) {
-      throw new Error('Failed to get video download URL');
-    }
-
-    // Get the video blob
-    const videoBlob = await downloadResponse.arrayBuffer();
-    const base64Video = btoa(String.fromCharCode(...new Uint8Array(videoBlob)));
-
+    // Return the video ID so the frontend can download it
+    // Note: We don't convert to base64 because video files are too large
     return new Response(
       JSON.stringify({ 
-        videoBase64: base64Video,
-        videoId: videoId
+        videoId: videoId,
+        status: 'completed'
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

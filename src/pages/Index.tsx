@@ -77,30 +77,33 @@ const Index = () => {
         }
       );
 
-      if (videoError || !videoData) {
+      if (videoError || !videoData?.videoId) {
         throw new Error(videoError?.message || 'Failed to generate video');
       }
 
-      // Step 3: Convert to GIF (or use video URL if conversion fails)
-      toast.info("Converting to GIF...");
-      const { data: gifData, error: gifError } = await supabase.functions.invoke(
-        'convert-to-gif',
+      // Step 3: Download the video
+      toast.info("Downloading video...");
+      const { data: downloadData, error: downloadError } = await supabase.functions.invoke(
+        'download-sora-video',
         {
           body: {
-            videoBase64: videoData.videoBase64,
+            videoId: videoData.videoId,
           },
         }
       );
 
-      // If GIF conversion fails, use video URL as fallback
-      if (gifError || gifData?.fallbackToVideo) {
-        console.log('Using video fallback:', videoData.videoUrl);
-        setGeneratedGif(videoData.videoUrl);
-      } else {
-        setGeneratedGif(`data:image/gif;base64,${gifData.gifBase64}`);
+      if (downloadError) {
+        throw new Error(downloadError?.message || 'Failed to download video');
       }
 
-      toast.success("Your response GIF is ready!");
+      // Create blob URL from the downloaded video
+      const videoBlob = new Blob([downloadData], { type: 'video/mp4' });
+      const videoUrl = URL.createObjectURL(videoBlob);
+      
+      setGeneratedGif(videoUrl);
+
+      // Skip GIF conversion and just use the video
+      toast.success("Your response video is ready!");
       setIsGenerating(false);
     } catch (error) {
       console.error('Generation error:', error);

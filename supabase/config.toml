@@ -6,5 +6,8 @@ verify_jwt = false
 [functions.generate-sora-video]
 verify_jwt = false
 
+[functions.download-sora-video]
+verify_jwt = false
+
 [functions.convert-to-gif]
 verify_jwt = false
