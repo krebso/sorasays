@@ -20,6 +20,7 @@ const Index = () => {
   const [selectedTone, setSelectedTone] = useState<Tone>("sarcastic");
   const [customInstruction, setCustomInstruction] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [loadingStep, setLoadingStep] = useState<string>("");
   const [generatedGif, setGeneratedGif] = useState<string | null>(null);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [isConverting, setIsConverting] = useState(false);
@@ -63,13 +64,13 @@ const Index = () => {
     }
 
     setIsGenerating(true);
+    setLoadingStep("Generating prompt");
     
     // First, process reference image if needed
     let referenceImageBase64 = null;
     let referenceImageType = null;
     
     if (referenceImage) {
-      toast.info("Processing reference image...");
       try {
         const resized = await resizeImage(referenceImage, 720, 1280);
         referenceImageBase64 = resized.base64;
@@ -77,10 +78,11 @@ const Index = () => {
       } catch (error) {
         console.error('Failed to resize image:', error);
         toast.error("Failed to process reference image");
+        setIsGenerating(false);
+        setLoadingStep("");
         throw error;
       }
     } else if (searchedImageUrl) {
-      toast.info("Processing searched image...");
       try {
         // Fetch the image via backend proxy to avoid CORS issues
         const { data, error } = await supabase.functions.invoke('proxy-image-fetch', {
@@ -104,6 +106,8 @@ const Index = () => {
       } catch (error) {
         console.error('Failed to process searched image:', error);
         toast.error("Failed to process searched image");
+        setIsGenerating(false);
+        setLoadingStep("");
         throw error;
       }
     }
@@ -121,8 +125,6 @@ const Index = () => {
       });
 
       // Step 1: Analyze conversation and get GIF prompt
-      toast.info("Analyzing conversation...");
-      
       const { data: promptData, error: promptError } = await supabase.functions.invoke(
         'analyze-conversation',
         {
@@ -141,7 +143,7 @@ const Index = () => {
       }
 
       // Step 2: Generate video with Sora
-      toast.info("Generating video with AI...");
+      setLoadingStep("Creating video");
       
       const { data: videoData, error: videoError } = await supabase.functions.invoke(
         'generate-sora-video',
@@ -168,8 +170,6 @@ const Index = () => {
       }
 
       // Step 3: Download the video
-      toast.info("Downloading video...");
-
       const downloadResp = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/download-sora-video`,
         {
@@ -189,32 +189,30 @@ const Index = () => {
 
       const videoBlob = await downloadResp.blob();
       
-      // Show video preview immediately
+      // Show video preview while converting
       const videoBlobUrl = URL.createObjectURL(videoBlob);
       setVideoUrl(videoBlobUrl);
-      toast.success("Video ready! Converting to GIF...");
       
       // Convert to GIF
+      setLoadingStep("Converting to GIF");
       setIsConverting(true);
-      setIsGenerating(false);
       
       const gifBlob = await convertVideoToGif(videoBlobUrl, (progress) => {
         console.log(`GIF conversion progress: ${progress}%`);
-        if (progress < 50) {
-          toast.info(`Extracting frames: ${progress * 2}%`);
-        } else {
-          toast.info(`Encoding GIF: ${(progress - 50) * 2}%`);
-        }
       });
       
       const gifUrl = URL.createObjectURL(gifBlob);
       setGeneratedGif(gifUrl);
       setIsConverting(false);
-      toast.success("GIF generated successfully!");
+      setIsGenerating(false);
+      setLoadingStep("");
+      toast.success("GIF ready!");
     } catch (error) {
       console.error('Generation error:', error);
       toast.error(error instanceof Error ? error.message : "Failed to generate GIF");
       setIsGenerating(false);
+      setIsConverting(false);
+      setLoadingStep("");
     }
   };
 
@@ -231,7 +229,7 @@ const Index = () => {
           </p>
         </div>
 
-        {!generatedGif && !videoUrl ? (
+        {!generatedGif ? (
           <div className="max-w-3xl mx-auto animate-in slide-in-from-bottom duration-500">
             {/* Upload Section */}
             <div className="bg-card rounded-2xl p-4 shadow-card mb-4">
@@ -352,13 +350,13 @@ const Index = () => {
             {/* Generate Button */}
             <Button
               onClick={handleGenerate}
-              disabled={!screenshot || isGenerating}
+              disabled={!screenshot || isGenerating || isConverting}
               className="w-full h-12 text-base font-semibold shadow-playful hover:scale-[1.02] transition-transform"
             >
-              {isGenerating ? (
+              {isGenerating || isConverting ? (
                 <>
                   <Sparkles className="w-5 h-5 mr-2 animate-spin" />
-                  Generating Magic...
+                  {loadingStep}...
                 </>
               ) : (
                 <>
