@@ -26,8 +26,8 @@ export async function loadFFmpeg(onProgress?: (progress: number) => void): Promi
 
   try {
     // Load FFmpeg from CDN
-    console.log('Downloading FFmpeg core files from CDN...');
-    const baseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/esm';
+    console.log('Downloading FFmpeg core files from CDN (UMD build, classic worker)...');
+    const baseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd';
     
     const coreURL = await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript');
     console.log('Core JS downloaded');
