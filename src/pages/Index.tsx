@@ -36,17 +36,75 @@ const Index = () => {
     setIsGenerating(true);
     
     try {
-      // This will be implemented with the actual API calls
-      toast.info("Generating your response GIF...");
+      // Convert image to base64
+      const reader = new FileReader();
+      const imageBase64 = await new Promise<string>((resolve, reject) => {
+        reader.onload = () => {
+          const base64 = reader.result as string;
+          resolve(base64.split(',')[1]); // Remove data:image/jpeg;base64, prefix
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(screenshot);
+      });
+
+      // Step 1: Analyze conversation and get GIF prompt
+      toast.info("Analyzing conversation...");
+      const { supabase } = await import("@/integrations/supabase/client");
       
-      // Placeholder for now - will integrate OpenAI and Sora APIs
-      setTimeout(() => {
-        toast.success("GIF generated successfully!");
-        setGeneratedGif("placeholder-gif-url");
-        setIsGenerating(false);
-      }, 3000);
+      const { data: promptData, error: promptError } = await supabase.functions.invoke(
+        'analyze-conversation',
+        {
+          body: {
+            imageBase64,
+            tone: selectedTone,
+            customInstruction,
+          },
+        }
+      );
+
+      if (promptError || !promptData?.gifPrompt) {
+        throw new Error(promptError?.message || 'Failed to generate prompt');
+      }
+
+      // Step 2: Generate video with Sora
+      toast.info("Generating video with AI...");
+      const { data: videoData, error: videoError } = await supabase.functions.invoke(
+        'generate-sora-video',
+        {
+          body: {
+            prompt: promptData.gifPrompt,
+          },
+        }
+      );
+
+      if (videoError || !videoData) {
+        throw new Error(videoError?.message || 'Failed to generate video');
+      }
+
+      // Step 3: Convert to GIF (or use video URL if conversion fails)
+      toast.info("Converting to GIF...");
+      const { data: gifData, error: gifError } = await supabase.functions.invoke(
+        'convert-to-gif',
+        {
+          body: {
+            videoBase64: videoData.videoBase64,
+          },
+        }
+      );
+
+      // If GIF conversion fails, use video URL as fallback
+      if (gifError || gifData?.fallbackToVideo) {
+        console.log('Using video fallback:', videoData.videoUrl);
+        setGeneratedGif(videoData.videoUrl);
+      } else {
+        setGeneratedGif(`data:image/gif;base64,${gifData.gifBase64}`);
+      }
+
+      toast.success("Your response GIF is ready!");
+      setIsGenerating(false);
     } catch (error) {
-      toast.error("Failed to generate GIF");
+      console.error('Generation error:', error);
+      toast.error(error instanceof Error ? error.message : "Failed to generate GIF");
       setIsGenerating(false);
     }
   };

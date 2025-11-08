@@ -1,0 +1,90 @@
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+
+const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const { imageBase64, tone, customInstruction } = await req.json();
+
+    console.log('Analyzing conversation with tone:', tone);
+
+    const systemPrompt = `You are given a screenshot of a conversation that likely left the recipient unable to formulate an appropriate response. Your task is to generate a funny, creative video/GIF idea that could be used as a reply to this sequence of messages.
+
+User wants the tone of the gif: ${tone}
+
+User's custom instructions: ${customInstruction || 'None'}
+
+Generate a detailed, vivid description of a short video scene (3-5 seconds) that would make a perfect response GIF. Focus on visual action, emotion, and humor. Be specific about what's happening in the scene.`;
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { 
+            role: 'system', 
+            content: systemPrompt
+          },
+          { 
+            role: 'user', 
+            content: [
+              {
+                type: 'image_url',
+                image_url: {
+                  url: `data:image/jpeg;base64,${imageBase64}`
+                }
+              },
+              {
+                type: 'text',
+                text: 'Based on this conversation screenshot, generate a perfect response GIF idea.'
+              }
+            ]
+          }
+        ],
+        max_tokens: 300,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      console.error('OpenAI API error:', error);
+      throw new Error(`OpenAI API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const gifPrompt = data.choices[0].message.content;
+
+    console.log('Generated GIF prompt:', gifPrompt);
+
+    return new Response(
+      JSON.stringify({ gifPrompt }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
+    );
+  } catch (error) {
+    console.error('Error in analyze-conversation function:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return new Response(
+      JSON.stringify({ error: errorMessage }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
+    );
+  }
+});

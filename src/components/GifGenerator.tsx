@@ -8,14 +8,59 @@ interface GifGeneratorProps {
 }
 
 export const GifGenerator = ({ gifUrl, onGenerateNew }: GifGeneratorProps) => {
-  const handleDownload = () => {
-    // Placeholder - will implement actual download
-    toast.success("GIF downloaded!");
+  const isVideo = gifUrl.includes('.mp4') || gifUrl.startsWith('http');
+  const isBase64 = gifUrl.startsWith('data:');
+
+  const handleDownload = async () => {
+    try {
+      if (isBase64) {
+        // Download base64 GIF
+        const link = document.createElement('a');
+        link.href = gifUrl;
+        link.download = `sorasays-${Date.now()}.gif`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success("GIF downloaded!");
+      } else {
+        // Download from URL
+        const response = await fetch(gifUrl);
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `sorasays-${Date.now()}.${isVideo ? 'mp4' : 'gif'}`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        toast.success(`${isVideo ? 'Video' : 'GIF'} downloaded!`);
+      }
+    } catch (error) {
+      toast.error("Failed to download");
+      console.error(error);
+    }
   };
 
-  const handleCopy = () => {
-    // Placeholder - will implement clipboard copy
-    toast.success("GIF copied to clipboard!");
+  const handleCopy = async () => {
+    try {
+      if (isBase64) {
+        // Convert base64 to blob and copy
+        const response = await fetch(gifUrl);
+        const blob = await response.blob();
+        await navigator.clipboard.write([
+          new ClipboardItem({ [blob.type]: blob })
+        ]);
+        toast.success("GIF copied to clipboard!");
+      } else {
+        // Copy URL to clipboard
+        await navigator.clipboard.writeText(gifUrl);
+        toast.success("Link copied to clipboard!");
+      }
+    } catch (error) {
+      toast.error("Failed to copy");
+      console.error(error);
+    }
   };
 
   return (
@@ -23,13 +68,28 @@ export const GifGenerator = ({ gifUrl, onGenerateNew }: GifGeneratorProps) => {
       <div className="bg-card rounded-3xl p-8 shadow-card">
         <h2 className="text-3xl font-bold mb-6 text-center">Your Response GIF is Ready! 🎉</h2>
         
-        {/* GIF Preview */}
-        <div className="aspect-video bg-muted rounded-2xl mb-6 flex items-center justify-center">
-          <div className="text-center text-muted-foreground">
-            <div className="text-4xl mb-2">🎬</div>
-            <p>GIF Preview</p>
-            <p className="text-sm">Video conversion in progress...</p>
-          </div>
+        {/* GIF/Video Preview */}
+        <div className="aspect-video bg-muted rounded-2xl mb-6 flex items-center justify-center overflow-hidden">
+          {isVideo ? (
+            <video
+              src={gifUrl}
+              autoPlay
+              loop
+              muted
+              className="w-full h-full object-contain"
+            />
+          ) : isBase64 ? (
+            <img
+              src={gifUrl}
+              alt="Generated GIF"
+              className="w-full h-full object-contain"
+            />
+          ) : (
+            <div className="text-center text-muted-foreground">
+              <div className="text-4xl mb-2">🎬</div>
+              <p>Loading preview...</p>
+            </div>
+          )}
         </div>
 
         {/* Action Buttons */}
