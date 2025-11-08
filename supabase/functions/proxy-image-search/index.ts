@@ -28,7 +28,7 @@ serve(async (req) => {
 
     // Fetch from the external API
     const response = await fetch(
-      `https://agent-middle-primary-washing.trycloudflare.com/search?prompt=${encodeURIComponent(prompt)}`
+      `https://copying-tracy-analyzed-imported.trycloudflare.com/search?prompt=${encodeURIComponent(prompt)}`
     );
 
     if (!response.ok) {
@@ -36,7 +36,7 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    
+
     console.log(`Found ${data.results?.length || 0} results`);
 
     return new Response(JSON.stringify(data), {
