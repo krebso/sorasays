@@ -42,9 +42,10 @@ export async function loadFFmpeg(onProgress?: (progress: number) => void): Promi
       console.log('Worker JS downloaded');
     } catch (err) {
       console.warn('Worker JS not found on CDN, creating inline worker via importScripts fallback.', err);
-      const workerBlob = new Blob([`self.importScripts("${coreURL}");`], { type: 'text/javascript' });
+      const config = btoa(JSON.stringify({ wasmURL, workerURL: '' }));
+      const workerBlob = new Blob([`self.importScripts("${coreURL}#${config}");`], { type: 'text/javascript' });
       workerURL = URL.createObjectURL(workerBlob);
-      console.log('Fallback worker created from coreURL');
+      console.log('Fallback worker created from coreURL with config hash');
     }
     console.log('Using workerURL:', workerURL);
     
