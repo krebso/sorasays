@@ -14,6 +14,10 @@ export async function convertVideoToGif(
     video.playsInline = true;
     
     video.onloadedmetadata = async () => {
+      console.log('Video metadata loaded');
+      console.log('Video dimensions:', video.videoWidth, 'x', video.videoHeight);
+      console.log('Video duration:', video.duration, 'seconds');
+      
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       
@@ -27,16 +31,16 @@ export async function convertVideoToGif(
       canvas.width = video.videoWidth * scale;
       canvas.height = video.videoHeight * scale;
       
-      console.log(`Video dimensions: ${video.videoWidth}x${video.videoHeight}`);
       console.log(`Canvas dimensions: ${canvas.width}x${canvas.height}`);
-      console.log(`Video duration: ${video.duration}s`);
       
       // Initialize GIF encoder
       const gif = new GIF({
         workers: 2,
-        quality: 10, // 1-30, lower is better quality but larger file
+        quality: 10,
         width: canvas.width,
         height: canvas.height,
+        workerScript: '/gif.worker.js',
+        debug: true
       });
       
       gif.on('progress', (p) => {
@@ -48,11 +52,18 @@ export async function convertVideoToGif(
       });
       
       gif.on('finished', (blob) => {
-        console.log('GIF encoding complete!');
+        console.log('=== GIF Encoding Complete ===');
         console.log('GIF size:', (blob.size / 1024 / 1024).toFixed(2), 'MB');
         video.remove();
         canvas.remove();
         resolve(blob);
+      });
+      
+      gif.on('error', (error) => {
+        console.error('GIF encoding error:', error);
+        video.remove();
+        canvas.remove();
+        reject(new Error('GIF encoding failed: ' + error));
       });
       
       // Extract frames from video
@@ -88,7 +99,10 @@ export async function convertVideoToGif(
       };
       
       // Seek event will fire when video currentTime changes
-      video.onseeked = captureFrame;
+      video.onseeked = () => {
+        console.log(`Captured frame ${currentFrame}/${totalFrames}`);
+        captureFrame();
+      };
       
       // Start capturing frames
       video.currentTime = 0;
