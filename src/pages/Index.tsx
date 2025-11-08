@@ -12,7 +12,7 @@ export type Tone = "sarcastic" | "wholesome" | "savage" | "helpful" | "chaotic";
 
 const Index = () => {
   const [screenshot, setScreenshot] = useState<File | null>(null);
-  const [referenceImage, setReferenceImage] = useState<File | null>(null);
+  const [referenceImageUrl, setReferenceImageUrl] = useState<string>("");
   const [selectedTone, setSelectedTone] = useState<Tone>("sarcastic");
   const [customInstruction, setCustomInstruction] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -32,17 +32,6 @@ const Index = () => {
     }
   };
 
-  const handleReferenceImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (!file.type.startsWith("image/")) {
-        toast.error("Please upload an image file");
-        return;
-      }
-      setReferenceImage(file);
-      toast.success("Reference image uploaded!");
-    }
-  };
 
   const handleGenerate = async () => {
     if (!screenshot) {
@@ -85,26 +74,12 @@ const Index = () => {
       // Step 2: Generate video with Sora
       toast.info("Generating video with AI...");
       
-      // Convert reference image to base64 if provided
-      let referenceImageBase64 = null;
-      if (referenceImage) {
-        const refReader = new FileReader();
-        referenceImageBase64 = await new Promise<string>((resolve, reject) => {
-          refReader.onload = () => {
-            const base64 = refReader.result as string;
-            resolve(base64.split(',')[1]);
-          };
-          refReader.onerror = reject;
-          refReader.readAsDataURL(referenceImage);
-        });
-      }
-      
       const { data: videoData, error: videoError } = await supabase.functions.invoke(
         'generate-sora-video',
         {
           body: {
             prompt: promptData.gifPrompt,
-            referenceImage: referenceImageBase64,
+            referenceImageUrl: referenceImageUrl || null,
           },
         }
       );
@@ -219,17 +194,18 @@ const Index = () => {
             </div>
 
             {/* Reference Image */}
-            <div className="bg-card rounded-3xl p-8 shadow-card mb-6 opacity-50 cursor-not-allowed">
-              <h2 className="text-2xl font-bold mb-6">Reference Image (Coming Soon)</h2>
+            <div className="bg-card rounded-3xl p-8 shadow-card mb-6">
+              <h2 className="text-2xl font-bold mb-6">Reference Image (Optional)</h2>
               <p className="text-sm text-muted-foreground mb-4">
-                Reference image support is not yet available in the Sora API
+                Paste a URL of an image to inspire the visual style of your GIF
               </p>
-              <div className="border-2 border-dashed border-border rounded-2xl p-6 text-center">
-                <Upload className="w-8 h-8 mx-auto text-muted-foreground" />
-                <div className="text-sm text-muted-foreground mt-2">
-                  Feature coming soon
-                </div>
-              </div>
+              <input
+                type="url"
+                placeholder="https://example.com/image.jpg"
+                value={referenceImageUrl}
+                onChange={(e) => setReferenceImageUrl(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border-2 border-border bg-background focus:border-primary focus:outline-none transition-colors"
+              />
             </div>
 
             {/* Custom Instructions */}
@@ -275,7 +251,7 @@ const Index = () => {
               setGeneratedGif(null);
               setVideoUrl(null);
               setScreenshot(null);
-              setReferenceImage(null);
+              setReferenceImageUrl("");
               setCustomInstruction("");
             }}
           />

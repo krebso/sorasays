@@ -14,7 +14,7 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, referenceImage } = await req.json();
+    const { prompt, referenceImageUrl } = await req.json();
 
     // Validate and sanitize prompt
     if (!prompt || typeof prompt !== 'string') {
@@ -28,10 +28,8 @@ serve(async (req) => {
     }
 
     console.log('Generating video with Sora API for prompt:', sanitizedPrompt);
-    
-    // Note: Reference image support not yet available in Sora API
-    if (referenceImage) {
-      console.log('Note: Reference images are not currently supported by the Sora API');
+    if (referenceImageUrl) {
+      console.log('Using reference image URL:', referenceImageUrl);
     }
 
     // Step 1: Create the video generation request
@@ -40,6 +38,11 @@ serve(async (req) => {
     formData.append('prompt', sanitizedPrompt);
     formData.append('size', '720x1280');  // Smallest vertical format (portrait)
     formData.append('seconds', '4');
+    
+    // Add reference image URL if provided
+    if (referenceImageUrl) {
+      formData.append('input_reference', referenceImageUrl);
+    }
 
     const createResponse = await fetch('https://api.openai.com/v1/videos', {
       method: 'POST',
