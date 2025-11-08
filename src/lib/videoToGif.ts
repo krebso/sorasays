@@ -69,9 +69,10 @@ export async function convertVideoToGif(
       // Extract frames from video
       const fps = 10; // Frames per second to extract
       const frameDelay = 1000 / fps; // Delay between frames in ms
-      const totalFrames = Math.floor(video.duration * fps);
+      const skipFrames = 3; // Skip first 3 frames
+      const totalFrames = Math.floor(video.duration * fps) - skipFrames;
       
-      console.log(`Extracting ${totalFrames} frames at ${fps} FPS...`);
+      console.log(`Extracting ${totalFrames} frames at ${fps} FPS (skipping first ${skipFrames} frames)...`);
       
       let currentFrame = 0;
       const captureFrame = () => {
@@ -88,7 +89,7 @@ export async function convertVideoToGif(
         gif.addFrame(canvas, { copy: true, delay: frameDelay });
         
         currentFrame++;
-        const frameTime = currentFrame / fps;
+        const frameTime = (currentFrame + skipFrames) / fps; // Skip first 3 frames
         video.currentTime = frameTime;
         
         // Progress update for frame extraction
@@ -104,8 +105,8 @@ export async function convertVideoToGif(
         captureFrame();
       };
       
-      // Start capturing frames
-      video.currentTime = 0;
+      // Start capturing frames (skip first 3 frames)
+      video.currentTime = 3 / fps;
     };
     
     video.onerror = () => {

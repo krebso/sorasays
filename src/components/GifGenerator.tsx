@@ -51,7 +51,7 @@ export const GifGenerator = ({ gifUrl, videoUrl, isConverting, onGenerateNew }: 
         )}
         
         {/* GIF/Video Preview */}
-        <div className="bg-muted rounded-2xl mb-6 flex items-center justify-center overflow-hidden">
+        <div className="rounded-2xl mb-6 flex items-center justify-center overflow-hidden">
           {isVideo ? (
             <video
               src={displayUrl}
