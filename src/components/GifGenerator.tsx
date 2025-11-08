@@ -1,4 +1,4 @@
-import { Download, Copy, RotateCcw } from "lucide-react";
+import { Download, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -34,20 +34,6 @@ export const GifGenerator = ({ gifUrl, videoUrl, isConverting, onGenerateNew }: 
     }
   };
 
-  const handleCopy = async () => {
-    if (!displayUrl || isVideo) {
-      toast.error("Videos can't be copied. Please wait for GIF conversion.");
-      return;
-    }
-
-    try {
-      await navigator.clipboard.writeText(displayUrl);
-      toast.success("GIF link copied! Paste anywhere to share it.");
-    } catch (error) {
-      toast.error("Failed to copy link.");
-      console.error(error);
-    }
-  };
 
   return (
     <div className="max-w-3xl mx-auto animate-in fade-in duration-500">
@@ -89,24 +75,13 @@ export const GifGenerator = ({ gifUrl, videoUrl, isConverting, onGenerateNew }: 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4">
           {!isVideo && (
-            <>
-              <Button
-                onClick={handleDownload}
-                className="flex-1 h-12 shadow-playful"
-              >
-                <Download className="w-5 h-5 mr-2" />
-                Download GIF
-              </Button>
-              
-              <Button
-                onClick={handleCopy}
-                variant="secondary"
-                className="flex-1 h-12"
-              >
-                <Copy className="w-5 h-5 mr-2" />
-                Copy GIF Link
-              </Button>
-            </>
+            <Button
+              onClick={handleDownload}
+              className="flex-1 h-12 shadow-playful"
+            >
+              <Download className="w-5 h-5 mr-2" />
+              Download GIF
+            </Button>
           )}
           
           <Button
