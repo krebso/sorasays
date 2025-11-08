@@ -8,8 +8,9 @@ interface GifGeneratorProps {
 }
 
 export const GifGenerator = ({ gifUrl, onGenerateNew }: GifGeneratorProps) => {
-  const isVideo = gifUrl.includes('.mp4') || gifUrl.startsWith('http');
+  const isBlob = gifUrl.startsWith('blob:');
   const isBase64 = gifUrl.startsWith('data:');
+  const isVideo = isBlob || gifUrl.includes('.mp4') || (gifUrl.startsWith('http') && !gifUrl.endsWith('.gif'));
 
   const handleDownload = async () => {
     try {
@@ -99,7 +100,7 @@ export const GifGenerator = ({ gifUrl, onGenerateNew }: GifGeneratorProps) => {
             className="flex-1 h-12 shadow-playful"
           >
             <Download className="w-5 h-5 mr-2" />
-            Download GIF
+            {isVideo ? 'Download Video' : 'Download GIF'}
           </Button>
           
           <Button
