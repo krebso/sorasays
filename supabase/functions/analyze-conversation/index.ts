@@ -16,13 +16,28 @@ serve(async (req) => {
   try {
     const { imageBase64, tone, customInstruction } = await req.json();
 
+    // Validate inputs
+    if (!imageBase64 || typeof imageBase64 !== 'string') {
+      throw new Error('Invalid image data');
+    }
+
+    const validTones = ['sarcastic', 'wholesome', 'savage', 'helpful', 'chaotic'];
+    if (!tone || !validTones.includes(tone)) {
+      throw new Error('Invalid tone selection');
+    }
+
+    // Sanitize and validate custom instruction
+    const sanitizedInstruction = typeof customInstruction === 'string' 
+      ? customInstruction.trim().slice(0, 500) 
+      : '';
+
     console.log('Analyzing conversation with tone:', tone);
 
     const systemPrompt = `You are given a screenshot of a conversation that likely left the recipient unable to formulate an appropriate response. Your task is to generate a funny, creative video/GIF idea that could be used as a reply to this sequence of messages.
 
 User wants the tone of the gif: ${tone}
 
-User's custom instructions: ${customInstruction || 'None'}
+User's custom instructions: ${sanitizedInstruction || 'None'}
 
 Generate a detailed, vivid description of a short video scene (3-5 seconds) that would make a perfect response GIF. Focus on visual action, emotion, and humor. Be specific about what's happening in the scene.`;
 

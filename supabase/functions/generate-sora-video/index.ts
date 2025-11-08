@@ -16,12 +16,23 @@ serve(async (req) => {
   try {
     const { prompt } = await req.json();
 
-    console.log('Generating video with Sora API for prompt:', prompt);
+    // Validate and sanitize prompt
+    if (!prompt || typeof prompt !== 'string') {
+      throw new Error('Invalid prompt');
+    }
+
+    const sanitizedPrompt = prompt.trim().slice(0, 4000);
+    
+    if (!sanitizedPrompt) {
+      throw new Error('Prompt cannot be empty');
+    }
+
+    console.log('Generating video with Sora API for prompt:', sanitizedPrompt);
 
     // Step 1: Create the video generation request
     const formData = new FormData();
     formData.append('model', 'sora-2');
-    formData.append('prompt', prompt);
+    formData.append('prompt', sanitizedPrompt);
     formData.append('size', '720x1280');  // Smallest vertical format (portrait)
     formData.append('seconds', '4');
 

@@ -176,9 +176,13 @@ const Index = () => {
               <Textarea
                 placeholder="Add any specific details about how you want your GIF to look..."
                 value={customInstruction}
-                onChange={(e) => setCustomInstruction(e.target.value)}
+                onChange={(e) => setCustomInstruction(e.target.value.slice(0, 500))}
+                maxLength={500}
                 className="min-h-[100px] resize-none"
               />
+              <p className="text-sm text-muted-foreground mt-2">
+                {customInstruction.length}/500 characters
+              </p>
             </div>
 
             {/* Generate Button */}
