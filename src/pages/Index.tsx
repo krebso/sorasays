@@ -115,12 +115,20 @@ const Index = () => {
       } else if (searchedImageUrl) {
         toast.info("Processing searched image...");
         try {
-          // Fetch the image from URL
-          const response = await fetch(searchedImageUrl);
-          const blob = await response.blob();
-          
-          // Convert blob to File
-          const file = new File([blob], "searched-image.jpg", { type: blob.type });
+          // Fetch the image via backend proxy to avoid CORS issues
+          const { data, error } = await supabase.functions.invoke('proxy-image-fetch', {
+            body: { url: searchedImageUrl },
+          });
+
+          if (error || !data?.base64) {
+            throw new Error(error?.message || 'Failed to fetch searched image');
+          }
+
+          // Recreate a Blob/File from base64
+          const dataUrl = `data:${data.mimeType};base64,${data.base64}`;
+          const resp = await fetch(dataUrl);
+          const blob = await resp.blob();
+          const file = new File([blob], "searched-image", { type: data.mimeType || 'image/jpeg' });
           
           // Resize the image
           const resized = await resizeImage(file, 720, 1280);
