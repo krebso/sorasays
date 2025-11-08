@@ -60,13 +60,13 @@ export const GifGenerator = ({ gifUrl, videoUrl, isConverting, onGenerateNew }: 
             playsInline
             controls
             preload="metadata"
-            className="w-full rounded-2xl mb-6"
+            className="w-full max-w-full max-h-[600px] rounded-2xl mb-6 object-contain"
           />
         ) : (
           <img
             src={displayUrl}
             alt="Generated GIF"
-            className="w-full rounded-2xl mb-6"
+            className="w-full max-w-full max-h-[600px] rounded-2xl mb-6 object-contain"
           />
         )}
 
